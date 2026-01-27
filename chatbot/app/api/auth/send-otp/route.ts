@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendOTP, generateOTP } from '@/lib/email';
 import { saveOTP } from '@/lib/otp-store';
 
-// Simple rate limiting (store in memory, use Redis in production)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(email: string): boolean {
@@ -34,8 +33,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid purpose' }, { status: 400 });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    const checkmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!checkmail.test(email)) {
       return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
 

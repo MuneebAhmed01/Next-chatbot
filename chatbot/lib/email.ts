@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-// Debug: Log if credentials are loaded
+
 console.log('Email config:', {
   user: process.env.EMAIL_USER ? 'loaded' : 'missing',
   pass: process.env.EMAIL_PASS ? 'loaded' : 'missing',
@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS?.replace(/\s/g, ''), // Remove any spaces
+    pass: process.env.EMAIL_PASS?.replace(/\s/g, ''), 
   },
 });
 

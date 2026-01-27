@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
       });
 
       if (verifyRes.ok) {
-        // Reset password logic here
+        
         alert('Password reset successful!');
         router.push('/login');
       } else {

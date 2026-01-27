@@ -1,41 +1,80 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { redirect } from 'next/navigation';
+import { chatService, SidebarItem } from "../services/chatService";
 
-type Chat = {
-  id: string;
-  title: string;
+type SidebarProps = {
+  onSelectChat: (id: string | null) => void;
+  activeChat: string | null;
+  onChatsUpdate?: () => void;
 };
 
-export default function Sidebar() {
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [activeChat, setActiveChat] = useState<string | null>(null);
+export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate }: SidebarProps) {
+  const [chats, setChats] = useState<SidebarItem[]>([]);
+  const [credits, setCredits] = useState({ used: 0, limit: 100 });
+
+  useEffect(() => {
+    loadChats();
+    loadUsage();
+  }, []);
+
+  async function loadChats() {
+    try {
+      const data = await chatService.getSidebarChats();
+      setChats(data);
+    } catch (error) {
+      console.error("Failed to load chats:", error);
+    }
+  }
+
+  async function loadUsage() {
+    try {
+      const usage = await chatService.getUsage();
+      setCredits({ used: usage.messagesUsed, limit: usage.messagesLimit });
+    } catch (error) {
+      console.error("Failed to load usage:", error);
+    }
+  }
 
   function createNewChat() {
-    const newChat = {
-      id: crypto.randomUUID(),
-      title: "New chat",
-    };
-
-    setChats((prev) => [newChat, ...prev]);
-    setActiveChat(newChat.id);
+    onSelectChat(null); // null means new chat
   }
+
+  async function handleDeleteChat(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    try {
+      await chatService.deleteChat(id);
+      await loadChats();
+      if (activeChat === id) {
+        onSelectChat(null);
+      }
+    } catch (error) {
+      console.error("Failed to delete chat:", error);
+    }
+  }
+
+  // Expose refresh function
+  useEffect(() => {
+    if (onChatsUpdate) {
+      (window as any).refreshSidebarChats = loadChats;
+    }
+  }, [onChatsUpdate]);
 
   return (
     <div className="flex h-screen w-[17%] min-w-[17%] shrink-0 flex-col bg-black">
 
-         {/* Logo Section */}
-        <div className='text-white font-bold text-2xl'>Chat<span className='text-blue-500'> BOT</span></div>
+      {/* Logo Section */}
+      <div className='text-white font-bold text-2xl p-4'>Chat<span className='text-blue-500'> BOT</span></div>
       
       {/* Sidebar */}
-      <aside className="h-[50%] chat border-r text white flex flex-col">
+      <aside className="flex-1 overflow-hidden border-r flex flex-col">
 
         {/* Header */}
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="font-semibold text-lg">Chats</h2>
+        <div className="p-4 border-b flex justify-between items-center shrink-0">
+          <h2 className="font-semibold text-lg text-white">Chats</h2>
           <button
             onClick={createNewChat}
-            className="px-3 py-1 rounded bg-black text-white text-sm hover:bg-gray-800"
+            className="px-3 py-1 rounded bg-gray-800 text-white text-sm hover:bg-gray-700"
           >
             + New
           </button>
@@ -48,68 +87,59 @@ export default function Sidebar() {
           )}
 
           {chats.map((chat) => (
-            <button
+            <div
               key={chat.id}
-              onClick={() => setActiveChat(chat.id)}
-              className={`w-full text-left px-4 py-3 truncate text-sm transition
+              onClick={() => onSelectChat(chat.id)}
+              className={`w-full text-left px-4 py-3 text-sm transition cursor-pointer flex justify-between items-center group
                 ${
                   chat.id === activeChat
-                    ? "bg-gray-200 font-medium"
-                    : "hover:bg-gray-100"
+                    ? "bg-gray-700 text-white font-medium"
+                    : "text-gray-300 hover:bg-gray-800"
                 }`}
             >
-              {chat.title}
-            </button>
+              <span className="truncate flex-1">{chat.title}</span>
+              <button
+                onClick={(e) => handleDeleteChat(chat.id, e)}
+                className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 ml-2"
+              >
+                ✕
+              </button>
+            </div>
           ))}
         </div>
       </aside>
-      {/* Main Chat Area */}
-      <main className="flex-1 p-6">
-        {activeChat ? (
-          <h1 className="text-xl font-semibold">
-            Chat: {chats.find((c) => c.id === activeChat)?.title}
-          </h1>
-        ) : (
-          <h1 className="text-gray-500">Select or create a chat</h1>
-        )}
-      </main>
-      {/* 3 button in a column */}
-    
-<div className="border-t p-3 space-y-2 ">
 
-  {/* Available Credits */}
-  <div className="flex items-center justify-between px-3 py-2 border border-white rounded-xl">
-    <span className="text-sm font-medium  bg-black text-white ">
-      Available credit: 0
-    </span>
+      {/* Bottom buttons */}
+      <div className="border-t border-gray-700 p-3 space-y-2">
+        {/* Available Credits */}
+        <div className="flex items-center justify-between px-3 py-2 border border-gray-600 rounded-xl">
+          <span className="text-sm font-medium text-white">
+            Credits: {credits.limit - credits.used}/{credits.limit}
+          </span>
+          <button
+            onClick={() => console.log("Buy more")}
+            className="text-xs px-2 py-1 rounded bg-gray-700 text-white hover:bg-gray-600"
+          >
+            Buy more
+          </button>
+        </div>
 
-    <button
-      onClick={() => console.log("Buy more")}
-      className="text-xs px-0.5 py-0.5 rounded bg-gray-700 text-white hover:bg-gray-800"
-    >
-      Buy more
-    </button>
-  </div>
+        {/* Profile */}
+        <button
+          onClick={() => console.log("Profile or Auth")}
+          className="w-full text-left px-3 py-2 text-sm bg-black text-white hover:bg-gray-800 border border-gray-600 rounded-xl"
+        >
+          👤 Your profile / Sign up / Login
+        </button>
 
-  {/* Profile / Signup / Login */}
-  <button
-    onClick={() => console.log("Profile or Auth")}
-    className="w-full text-left px-3 py-2  text-sm bg-black text-white hover:bg-gray-200 border border-white rounded-xl"
-  >
-    👤 Your profile / Sign up / Login
-  </button>
-
-  {/* Logout */}
-  <button
-    onClick={() => redirect('/login')}
-    className="w-full text-left px-3 py-2  text-sm text-white bg-black hover:bg-red-100 border border-white rounded-xl"
-  >
-    🚪 Logout
-  </button>
-
-</div>
-
-
+        {/* Logout */}
+        <button
+          onClick={() => redirect('/login')}
+          className="w-full text-left px-3 py-2 text-sm text-white bg-black hover:bg-gray-800 border border-gray-600 rounded-xl"
+        >
+          🚪 Logout
+        </button>
+      </div>
     </div>
   );
 }

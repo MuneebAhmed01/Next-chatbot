@@ -24,12 +24,14 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/mongoose": "^11.0.4",
     "@nestjs/platform-express": "^11.0.1",
+    "@types/uuid": "^10.0.0",
     "bcrypt": "^6.0.0",
     "class-validator": "^0.14.3",
     "mongoose": "^9.1.5",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "sequelize-typescript": "^2.1.6"
+    "sequelize-typescript": "^2.1.6",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

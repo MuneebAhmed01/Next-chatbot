@@ -35,7 +35,7 @@ export class UserService {
     }
   }
 
-  // Authenticate user
+  // Auth user
   async login(email: string, password: string) {
     const user = await this.userModel.findOne({ email });
     if (!user) {

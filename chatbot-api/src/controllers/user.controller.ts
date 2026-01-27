@@ -11,23 +11,23 @@ export class UsersController {
     return { message: "Welcome to the login page", status: "success" }; 
   }
 
-  @Post("login") // Maps to /user/login
+  @Post("login") 
   async login(@Body() loginDto: LoginDto) {
-    return this.userService.login(loginDto.email, loginDto.password); // POST /login → Authenticate user credentials
+    return this.userService.login(loginDto.email, loginDto.password); 
   }
 
-  @Get("signup") // Maps to /user/signup
+  @Get("signup")
   showSignupPage() {
-    return { message: "Welcome to the signup page", status: "success" }; // GET /signup → Show signup page
+    return { message: "Welcome to the signup page", status: "success" }; 
   }
 
-  @Post("signup") // Maps to /user/signup
+  @Post("signup") 
   async signup(@Body() signupDto: SignupDto) {
     return this.userService.signup(
       signupDto.name,
       signupDto.email,
       signupDto.password,
-    ); // POST /signup → Create new user
+    ); 
   }
 
   @Post("forgot-password")

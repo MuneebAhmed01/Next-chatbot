@@ -36,19 +36,20 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-  //  after connecting to db,need to do ts
-    // TODO: Hash password and save user to database
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    // await db.user.create({ email, password: hashedPassword, name });
+  // //  after connecting to db,need to do ts
+  //  hashing pass and sav it to db 
 
-    // Create authenticated response
+  //   // const hashedPassword = await bcrypt.hash(password, 10);
+  //   // await db.user.create({ email, password: hashedPassword, name });
+
+
+//response
     const response = NextResponse.json({
       success: true,
       message: 'Registration successful',
       user: { email, name },
     });
-
-    // Set auth cookies
+    
     response.cookies.set('auth', 'true', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
