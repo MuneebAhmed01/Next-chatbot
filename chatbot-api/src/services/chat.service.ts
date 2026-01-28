@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { chatThreads, userUsage, ChatThread, ChatMessage } from '../data/chat.data';
 import { SendMessageDto, SaveChatDto, ChatSidebarItemDto } from '../dto/chat.dto';
 import { v4 as uuidv4 } from 'uuid';
+// Add these imports:
+import fetch from 'node-fetch';
 
 @Injectable()
 export class ChatService {
@@ -33,8 +35,43 @@ export class ChatService {
     return chat;
   }
 
+  // Replace this function:
+  async getOpenRouterResponse(prompt: string): Promise<string> {
+    const apiKey = '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';
+    const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+
+    const body = {
+      model: 'openai/gpt-3.5-turbo', // or another model if you want
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 512,
+    };
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenRouter API error: ${response.statusText}`);
+    }
+
+    // Fix: assert the type of data
+    const data = await response.json() as {
+      choices?: { message?: { content?: string } }[];
+    };
+
+    return data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+  }
+
   // Send message and get AI response
-  sendMessage(dto: SendMessageDto): { chat: ChatThread; response: ChatMessage } {
+  async sendMessage(dto: SendMessageDto): Promise<{ chat: ChatThread; response: ChatMessage }> {
     let chat: ChatThread | undefined;
 
     if (dto.chatId) {
@@ -63,11 +100,18 @@ export class ChatService {
     };
     chat.messages.push(userMessage);
 
-    // Generate dummy AI response
+    // Generate AI response using OpenRouter
+    let aiContent = '';
+    try {
+      aiContent = await this.getOpenRouterResponse(dto.message);
+    } catch (err) {
+      aiContent = 'Sorry, there was an error generating a response.';
+    }
+
     const aiResponse: ChatMessage = {
       id: `msg-${uuidv4()}`,
       role: 'assistant',
-      content: `This is a simulated response to: "${dto.message}"`,
+      content: aiContent,
       timestamp: new Date(),
     };
     chat.messages.push(aiResponse);

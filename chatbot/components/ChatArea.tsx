@@ -42,7 +42,6 @@ export default function ChatArea({ chatId, onChatCreated }: ChatAreaProps) {
     setInput("");
     setLoading(true);
 
-    
     const tempUserMsg: ChatMessage = {
       id: `temp-${Date.now()}`,
       role: "user",
@@ -53,18 +52,42 @@ export default function ChatArea({ chatId, onChatCreated }: ChatAreaProps) {
 
     try {
       const result = await chatService.sendMessage(userMessage, chatId || undefined);
-      setMessages(result.chat.messages);
-     
-      
-      if (!chatId) {
-        onChatCreated(result.chat.id);
-        // Refresh sidebar
-        if ((window as any).refreshSidebarChats) {
-          (window as any).refreshSidebarChats();
+
+      // Fix: Check if result and result.chat are defined
+      if (result && result.chat && Array.isArray(result.chat.messages)) {
+        setMessages(result.chat.messages);
+
+        if (!chatId) {
+          onChatCreated(result.chat.id);
+          // Refresh sidebar
+          if ((window as any).refreshSidebarChats) {
+            (window as any).refreshSidebarChats();
+          }
         }
+      } else {
+        // Handle error: result.chat is undefined
+        console.error("No chat returned from API", result);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `error-${Date.now()}`,
+            role: "assistant",
+            content: "Sorry, there was an error processing your message.",
+            timestamp: new Date().toISOString(),
+          },
+        ]);
       }
     } catch (error) {
       console.error("Failed to send message:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          role: "assistant",
+          content: "Sorry, there was an error processing your message.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
     } finally {
       setLoading(false);
     }

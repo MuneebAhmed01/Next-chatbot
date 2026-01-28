@@ -49,8 +49,8 @@ export class ChatController {
 
   @Post("send")
   @HttpCode(HttpStatus.OK)
-  sendMessage(@Body() dto: SendMessageDto): ChatResponseDto {
-    const data = this.chatService.sendMessage(dto);
+  async sendMessage(@Body() dto: SendMessageDto): Promise<ChatResponseDto> {
+    const data = await this.chatService.sendMessage(dto);
     return { success: true, data };
   }
 

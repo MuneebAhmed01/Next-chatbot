@@ -6,10 +6,11 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(email: string): boolean {
   const now = Date.now();
-  const limit = rateLimitMap.get(email);
+  const normalizedEmail = email.toLowerCase().trim();
+  const limit = rateLimitMap.get(normalizedEmail);
 
   if (!limit || now > limit.resetAt) {
-    rateLimitMap.set(email, { count: 1, resetAt: now + 60000 }); // 1 minute
+    rateLimitMap.set(normalizedEmail, { count: 1, resetAt: now + 60000 }); // 1 minute
     return true;
   }
 
@@ -33,12 +34,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid purpose' }, { status: 400 });
     }
 
+    const normalizedEmail = email.toLowerCase().trim();
+
     const checkmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!checkmail.test(email)) {
+    if (!checkmail.test(normalizedEmail)) {
       return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
 
-    if (!checkRateLimit(email)) {
+    if (!checkRateLimit(normalizedEmail)) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { status: 429 }
@@ -46,10 +49,15 @@ export async function POST(request: NextRequest) {
     }
 
     const otp = generateOTP();
-    const sent = await sendOTP(email, otp, purpose);
+    
+    console.log('=== SEND OTP ===');
+    console.log('Email:', normalizedEmail);
+    console.log('Generated OTP:', otp);
+    
+    const sent = await sendOTP(normalizedEmail, otp, purpose);
 
     if (sent) {
-      saveOTP(email, otp, purpose);
+      saveOTP(normalizedEmail, otp, purpose);
       return NextResponse.json({ success: true, message: 'OTP sent successfully' });
     } else {
       return NextResponse.json(

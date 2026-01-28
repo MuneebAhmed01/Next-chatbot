@@ -22,12 +22,8 @@ export class UsersController {
   }
 
   @Post("signup") 
-  async signup(@Body() signupDto: SignupDto) {
-    return this.userService.signup(
-      signupDto.name,
-      signupDto.email,
-      signupDto.password,
-    ); 
+  async signup(@Body() body: { name: string; email: string; password: string }) {
+    return this.userService.initiateSignup(body.name, body.email, body.password);
   }
 
   @Post("forgot-password")
@@ -41,5 +37,15 @@ export class UsersController {
       resetPasswordDto.token,
       resetPasswordDto.newPassword,
     );
+  }
+
+  @Post("verify-otp")
+  async verifyOTP(@Body() body: { email: string; otp: string }) {
+    return this.userService.verifyOTPAndSignup(body.email, body.otp);
+  }
+
+  @Post("resend-otp")
+  async resendOTP(@Body() body: { email: string }) {
+    return this.userService.resendOTP(body.email);
   }
 }
