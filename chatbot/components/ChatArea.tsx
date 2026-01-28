@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { chatService, ChatMessage } from "../services/chatService";
+// Add import for Message component
+import Message from "./Message";
 
 type ChatAreaProps = {
   chatId: string | null;
@@ -101,24 +103,12 @@ export default function ChatArea({ chatId, onChatCreated }: ChatAreaProps) {
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-gray-500">
               <h1 className="text-5xl font-semibold mb-2">Ask Me Anything</h1>
-
             </div>
           </div>
         ) : (
+          // Use Message component for each message
           messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`p-4 rounded-lg max-w-3xl ${
-                msg.role === "user"
-                  ? "bg-gray-700 ml-auto"
-                  : "bg-gray-800"
-              }`}
-            >
-              <div className="text-xs text-gray-400 mb-1">
-                {msg.role === "user" ? "👤 You" : "🤖 Assistant"}
-              </div>
-              <div className="text-white whitespace-pre-wrap">{msg.content}</div>
-            </div>
+            <Message key={msg.id} message={msg} />
           ))
         )}
         {loading && (
