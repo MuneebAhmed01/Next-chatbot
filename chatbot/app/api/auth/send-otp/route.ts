@@ -8,14 +8,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email and purpose required' }, { status: 400 });
     }
 
-    // Only 'register' is currently supported via the backend signup flow for this route
     if (purpose === 'register') {
       if (!name || !password) {
-        // Should hopefully be caught by client validation, but good to check
+    
         return NextResponse.json({ error: 'Name and password required for registration' }, { status: 400 });
       }
 
-      // Call backend to initiate signup (generates OTP and saves temporary user in DB)
       try {
         const backendRes = await fetch('http://localhost:4000/user/signup', {
           method: 'POST',
@@ -36,8 +34,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fallback/Placeholder for other purposes (like reset) if not fully implemented in backend yet
-    // or if we want to keep local behavior. For now, we return error to imply strict backend usage.
     return NextResponse.json({ error: 'Only registration is supported at this time' }, { status: 400 });
 
   } catch (error) {

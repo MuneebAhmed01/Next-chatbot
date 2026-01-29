@@ -13,8 +13,7 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Call backend API for authentication
-    const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/login`, {
+    const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/user/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -27,19 +26,23 @@ export async function POST(request: NextRequest) {
 
     const result = await loginResponse.json();
 
-    if (!result.success) {
+    
+    if (!loginResponse.ok || !result.user) {
+     
+      const errorMsg = result?.message || result?.error || 'Invalid email or password';
+      console.log("login-error-1", result);
       return NextResponse.json(
-        { success: false, error: result.error },
+        { success: false, error: errorMsg },
         { status: loginResponse.status }
       );
     }
 
-    //res on succesfull login
+    // On successful login
     const response = NextResponse.json({
       success: true,
-      message: 'Login successful',
+      message: result.message || 'Login successful',
       user: {
-        id: result.user.id,
+        id: result.user.id || result.user._id,
         email: result.user.email,
         name: result.user.name,
       },
@@ -54,7 +57,7 @@ export async function POST(request: NextRequest) {
     });
 
     response.cookies.set('user', JSON.stringify({
-      id: result.user.id,
+      id: result.user.id || result.user._id,
       email: result.user.email,
       name: result.user.name,
     }), {

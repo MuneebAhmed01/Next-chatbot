@@ -137,9 +137,16 @@ export class UserService {
 
   
   async login(email: string, password: string) {
-    const user = await this.userModel.findOne({ email });
+    // Normalize email
+    const normalizedEmail = email?.toLowerCase().trim();
+    const user = await this.userModel.findOne({ email: normalizedEmail });
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
+    }
+
+    // Check if user is verified
+    if (user.isVerified === false) {
+      throw new UnauthorizedException('Account not verified. Please verify your email.');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

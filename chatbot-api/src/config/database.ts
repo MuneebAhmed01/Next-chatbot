@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  console.warn('MONGODB_URI not found in environment variables');
+  console.warn('MONGODB_URI not found in env');
 }
 
 let cached = (global as any).mongoose;

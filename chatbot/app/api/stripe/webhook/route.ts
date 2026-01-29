@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
         try {
             
             event = JSON.parse(body);
+              console.log("Webhook received:",body);
         } catch (err) {
             console.error('Webhook parsing error:', err);
             return NextResponse.json(
@@ -32,12 +33,14 @@ export async function POST(request: NextRequest) {
 
             if (sessionId) {
                 
-                try {
+                try {console.log("Webhook received:")
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/payment/confirm`, {
                         method: 'POST',
+                        
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ sessionId }),
-                    });
+                        
+                    },);
 
                     if (!response.ok) {
                         console.error('Failed to confirm payment');

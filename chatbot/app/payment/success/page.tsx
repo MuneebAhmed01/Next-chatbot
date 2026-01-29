@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { removeRequestMeta } from 'next/dist/server/request-meta';
 
 export default function PaymentSuccessPage() {
     const searchParams = useSearchParams();
@@ -11,12 +12,16 @@ export default function PaymentSuccessPage() {
     useEffect(() => {
         const sessionId = searchParams.get('session_id');
         const userId = searchParams.get('user_id');
-
+        
         if (sessionId && userId) {
           
             confirmPayment(sessionId, userId);
         } else {
-            setStatus('error');
+
+            setStatus('error')
+            console.log("userID",userId)
+            console.log("sessionID",sessionId)
+            console.log("status change:1")
         }
     }, [searchParams]);
 
@@ -65,11 +70,16 @@ export default function PaymentSuccessPage() {
                    
                 }
             } else {
-                setStatus('error');
+                setStatus('error')
+                console.log("status change:2")
+                ;;
             }
         } catch (error) {
-            console.error('Payment confirmation error:', error);
             setStatus('error');
+            console.log("status change:3")
+            console.error('Payment confirmation error:', error);
+            console.log('Payment confirmation error:', error);
+            console.log("errror from stripe",error)
         }
     }
 
