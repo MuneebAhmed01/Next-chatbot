@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import User from '../models/user.model';
+
 import Stripe from 'stripe';
 
 @Injectable()
@@ -14,14 +14,12 @@ export class PaymentService {
         } as any);
     }
 
-    // Create Stripe checkout session for credit purchase
     async createCheckoutSession(userId: string, email: string): Promise<{ url: string }> {
         const user = await this.userModel.findById(userId);
         if (!user) {
             throw new BadRequestException('User not found');
         }
 
-        // Create or retrieve Stripe customer
         let customerId = user.stripeCustomerId;
         if (!customerId) {
             const customer = await this.stripe.customers.create({
@@ -32,7 +30,6 @@ export class PaymentService {
             await this.userModel.findByIdAndUpdate(userId, { stripeCustomerId: customerId });
         }
 
-        // Create checkout session for $3 = 20 credits
         const session = await this.stripe.checkout.sessions.create({
             customer: customerId,
             payment_method_types: ['card'],
@@ -44,7 +41,7 @@ export class PaymentService {
                             name: 'ChatBot Credits',
                             description: '20 Credits for ChatBot prompts',
                         },
-                        unit_amount: 300, // $3.00 in cents
+                        unit_amount: 300,
                     },
                     quantity: 1,
                 },
@@ -61,7 +58,6 @@ export class PaymentService {
         return { url: session.url! };
     }
 
-    // Handle Stripe webhook for successful payment
     async handlePaymentSuccess(sessionId: string): Promise<{ credits: number }> {
         const session = await this.stripe.checkout.sessions.retrieve(sessionId);
 
@@ -76,7 +72,6 @@ export class PaymentService {
             throw new BadRequestException('User ID not found in session');
         }
 
-        // Add credits to user
         const user = await this.userModel.findByIdAndUpdate(
             userId,
             { $inc: { credits: creditsToAdd } },
@@ -90,7 +85,6 @@ export class PaymentService {
         return { credits: user.credits };
     }
 
-    // Get user credits
     async getUserCredits(userId: string): Promise<{ credits: number }> {
         const user = await this.userModel.findById(userId);
         if (!user) {
@@ -99,7 +93,7 @@ export class PaymentService {
         return { credits: user.credits || 0 };
     }
 
-    // Deduct credits after message
+
     async deductCredit(userId: string): Promise<{ credits: number; success: boolean }> {
         const user = await this.userModel.findById(userId);
         if (!user) {
@@ -119,13 +113,12 @@ export class PaymentService {
         return { credits: updatedUser!.credits, success: true };
     }
 
-    // Check if user has credits
     async hasCredits(userId: string): Promise<boolean> {
         const user = await this.userModel.findById(userId);
         return user ? user.credits > 0 : false;
     }
 
-    // Add credits directly (for webhook handling)
+   
     async addCredits(userId: string, amount: number): Promise<{ credits: number }> {
         const user = await this.userModel.findByIdAndUpdate(
             userId,

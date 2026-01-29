@@ -5,7 +5,7 @@ import { PaymentService } from '../services/payment.service';
 export class PaymentController {
     constructor(private readonly paymentService: PaymentService) { }
 
-    // Create Stripe checkout session
+    
     @Post('create-checkout-session')
     async createCheckoutSession(
         @Body() body: { userId: string; email: string }
@@ -13,7 +13,6 @@ export class PaymentController {
         return this.paymentService.createCheckoutSession(body.userId, body.email);
     }
 
-    // Handle payment success (called after redirect)
     @Post('confirm')
     async confirmPayment(
         @Body() body: { sessionId: string }
@@ -21,7 +20,7 @@ export class PaymentController {
         return this.paymentService.handlePaymentSuccess(body.sessionId);
     }
 
-    // Get user credits
+   
     @Get('credits/:userId')
     async getUserCredits(
         @Param('userId') userId: string
@@ -29,7 +28,7 @@ export class PaymentController {
         return this.paymentService.getUserCredits(userId);
     }
 
-    // Deduct credit after message
+   
     @Post('deduct')
     async deductCredit(
         @Body() body: { userId: string }
@@ -37,7 +36,6 @@ export class PaymentController {
         return this.paymentService.deductCredit(body.userId);
     }
 
-    // Check if user has credits
     @Get('has-credits/:userId')
     async hasCredits(
         @Param('userId') userId: string
@@ -46,7 +44,6 @@ export class PaymentController {
         return { hasCredits };
     }
 
-    // Add credits (for testing or admin purposes)
     @Post('add-credits')
     async addCredits(
         @Body() body: { userId: string; amount: number }

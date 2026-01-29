@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ChatController } from '../controllers/chat.controller';
 import { ChatService } from '../services/chat.service';
 import { PaymentModule } from './payment.module';

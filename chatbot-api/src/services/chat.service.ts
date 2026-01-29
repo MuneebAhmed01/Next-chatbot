@@ -12,7 +12,6 @@ export class ChatService {
 
   constructor(private readonly paymentService: PaymentService) { }
 
-  // Sidebar items
   getSidebarChats(): ChatSidebarItemDto[] {
     return this.chats
       .map(chat => ({
@@ -23,12 +22,10 @@ export class ChatService {
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
 
-  // Full chat history
   getChatHistory(): ChatThread[] {
     return this.chats.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
 
-  // Specific chat by id
   getChatById(id: string): ChatThread {
     const chat = this.chats.find(c => c.id === id);
     if (!chat) {
@@ -37,15 +34,16 @@ export class ChatService {
     return chat;
   }
 
-  // Get OpenRouter response
+ 
   async getOpenRouterResponse(prompt: string): Promise<string> {
     const apiKey = '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';
+    console.log("api fetched")
     const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
 
     const body = {
-      model: 'openai/gpt-3.5-turbo',
+     model: 'openai/gpt-3.5-turbo',
       messages: [
-        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'system', content: 'You are a assistant.' },
         { role: 'user', content: prompt }
       ],
       max_tokens: 512,
@@ -71,9 +69,8 @@ export class ChatService {
     return data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
   }
 
-  // Send message and get AI response
   async sendMessage(dto: SendMessageDto): Promise<{ chat: ChatThread; response: ChatMessage; credits?: number }> {
-    // Check credits if userId is provided
+ 
     if (dto.userId) {
       const hasCredits = await this.paymentService.hasCredits(dto.userId);
       if (!hasCredits) {
@@ -89,7 +86,7 @@ export class ChatService {
         throw new NotFoundException(`Chat with id ${dto.chatId} not found`);
       }
     } else {
-      // Create new chat
+     
       chat = {
         id: `chat-${uuidv4()}`,
         title: dto.message.slice(0, 30) + (dto.message.length > 30 ? '...' : ''),
@@ -100,7 +97,6 @@ export class ChatService {
       this.chats.push(chat);
     }
 
-    // Add user message
     const userMessage: ChatMessage = {
       id: `msg-${uuidv4()}`,
       role: 'user',
@@ -109,12 +105,14 @@ export class ChatService {
     };
     chat.messages.push(userMessage);
 
-    // Generate AI response using OpenRouter
+    
     let aiContent = '';
     try {
       aiContent = await this.getOpenRouterResponse(dto.message);
+       console.log("api fetched and respond")
     } catch (err) {
       aiContent = 'Sorry, there was an error generating a response.';
+      console.log(err)
     }
 
     const aiResponse: ChatMessage = {
@@ -133,13 +131,13 @@ export class ChatService {
       remainingCredits = result.credits;
     }
 
-    // Update in-memory usage (for backward compatibility)
+    
     this.usage.messagesUsed += 1;
 
     return { chat, response: aiResponse, credits: remainingCredits };
   }
 
-  // Save/update chat
+  
   saveChat(dto: SaveChatDto): ChatThread {
     const chat = this.chats.find(c => c.id === dto.chatId);
     if (!chat) {
@@ -154,14 +152,12 @@ export class ChatService {
     return chat;
   }
 
-  // Delete chat history
   deleteChatHistory(): { deleted: number } {
     const count = this.chats.length;
     this.chats = [];
     return { deleted: count };
   }
 
-  // Delete specific chat
   deleteChat(id: string): { deleted: boolean } {
     const index = this.chats.findIndex(c => c.id === id);
     if (index === -1) {
@@ -171,7 +167,6 @@ export class ChatService {
     return { deleted: true };
   }
 
-  // Get usage stats
   getUsage(): typeof userUsage {
     return {
       ...this.usage,

@@ -9,31 +9,27 @@ import { randomBytes, randomInt } from 'crypto';
 export class UserService {
   constructor(@InjectModel('User') private userModel: Model<any>) { }
 
-  // Generate 6-digit OTP
+  
   private generateOTP(): string {
     return randomInt(100000, 999999).toString();
   }
 
-  // Initiate signup - generate and send OTP
+  
   async initiateSignup(name: string, email: string, password: string) {
     try {
-      // Normalize email
+      
       const normalizedEmail = email?.toLowerCase().trim();
 
-      // Check if user already exists
       const existingUser = await this.userModel.findOne({ email: normalizedEmail });
       if (existingUser) {
         throw new BadRequestException('User already exists');
       }
 
-      // Generate OTP
       const otp = this.generateOTP();
       const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create temporary user with OTP
       const newUser = new this.userModel({
         name,
         email: normalizedEmail,
@@ -47,7 +43,7 @@ export class UserService {
 
       await newUser.save();
 
-      // Debug log - remove in production
+     
       console.log(`OTP for ${normalizedEmail}: ${otp} (expires: ${otpExpiry})`);
 
       return {
@@ -85,17 +81,16 @@ export class UserService {
     console.log('Current time:', new Date());
     console.log('Is expired:', user.otpExpiry ? new Date(user.otpExpiry).getTime() < Date.now() : 'no expiry');
 
-    // Check if OTP exists
+  
     if (!user.otp) {
       throw new BadRequestException('No OTP found. Please request a new one');
     }
 
-    // Check if OTP is expired
     if (!user.otpExpiry || new Date(user.otpExpiry).getTime() < Date.now()) {
       throw new BadRequestException('OTP has expired. Please request a new one');
     }
 
-    // Compare OTP
+  
     const storedOTP = String(user.otp).trim();
     console.log('Final comparison:', `"${storedOTP}"`, '===', `"${providedOTP}"`, ':', storedOTP === providedOTP);
 
@@ -103,7 +98,6 @@ export class UserService {
       throw new BadRequestException('Invalid OTP');
     }
 
-    // OTP is valid - complete registration
     await this.userModel.findByIdAndUpdate(user._id, {
       isVerified: true,
       $unset: {
@@ -118,7 +112,6 @@ export class UserService {
     };
   }
 
-  // Resend OTP for registration
   async resendOTP(email: string) {
     const user = await this.userModel.findOne({ email });
 
@@ -134,17 +127,15 @@ export class UserService {
       otpExpiry,
     });
 
-    // TODO: Send OTP via email here
-    console.log(`New OTP for ${email}: ${otp}`); // Remove in production
+    console.log(`New OTP for ${email}: ${otp}`); 
 
-    return {
-      message: 'OTP resent to your email',
-      // Remove this in production - only for testing
-      otp: otp
-    };
+    // return {
+    //   message: 'OTP resent to your email',
+    //   otp: otp
+    // };
   }
 
-  // Auth user
+  
   async login(email: string, password: string) {
     const user = await this.userModel.findOne({ email });
     if (!user) {
@@ -166,7 +157,6 @@ export class UserService {
     };
   }
 
-  // Forgot password - generate reset token
   async forgotPassword(email: string) {
     const user = await this.userModel.findOne({ email });
     if (!user) {
@@ -174,7 +164,7 @@ export class UserService {
     }
 
     const resetToken = randomBytes(32).toString('hex');
-    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+    const resetTokenExpiry = new Date(Date.now() + 3600000);
 
     await this.userModel.findByIdAndUpdate(user._id, {
       resetToken,
@@ -187,7 +177,6 @@ export class UserService {
     };
   }
 
-  // Reset password with token
   async resetPassword(token: string, newPassword: string) {
     const user = await this.userModel.findOne({
       resetToken: token,
@@ -218,20 +207,17 @@ export class UserService {
       throw new BadRequestException('User not found');
     }
 
-    // Return user without password
     const { password, ...userWithoutPassword } = user.toObject();
     return userWithoutPassword;
   }
 
-  // Google Login
   async googleLogin(email: string, name: string, googleId: string) {
     const normalizedEmail = email?.toLowerCase().trim();
 
     let user = await this.userModel.findOne({ email: normalizedEmail });
 
     if (!user) {
-      // Create new user if not exists
-      // Generate a random password since they use Google to login
+   
       const randomPassword = randomBytes(16).toString('hex');
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
@@ -239,14 +225,14 @@ export class UserService {
         email: normalizedEmail,
         name,
         password: hashedPassword,
-        isVerified: true, // Auto-verify email from Google
+        isVerified: true, 
         credits: 0,
         createdAt: new Date(),
       });
 
       await user.save();
     } else {
-      // If user exists but wasn't verified, verify them now since we trust Google
+    
       if (!user.isVerified) {
         user.isVerified = true;
         await user.save();
