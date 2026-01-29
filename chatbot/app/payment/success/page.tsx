@@ -1,29 +1,51 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { removeRequestMeta } from 'next/dist/server/request-meta';
+
+function getOrCreateUserId(): string {
+    if (typeof window === 'undefined') return '';
+    let userId = localStorage.getItem('user_id');
+    if (!userId) {
+        userId = crypto.randomUUID();
+        localStorage.setItem('user_id', userId);
+    }
+    return userId;
+}
 
 export default function PaymentSuccessPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [credits, setCredits] = useState<number | null>(null);
+    const hasConfirmed = useRef(false); 
 
     useEffect(() => {
-        const sessionId = searchParams.get('session_id');
-        const userId = searchParams.get('user_id');
-        
-        if (sessionId && userId) {
-          
-            confirmPayment(sessionId, userId);
-        } else {
+        if (typeof window === 'undefined') return;
 
+        const sessionId = searchParams.get('session_id');
+        let userId = searchParams.get('user_id');
+
+        
+        if (!userId) {
+            userId = getOrCreateUserId();
+            const url = new URL(window.location.href);
+            url.searchParams.set('user_id', userId);
+            window.location.replace(url.toString());
+            return;
+        }
+
+        if (sessionId && userId && !hasConfirmed.current) {
+            hasConfirmed.current = true;
+            confirmPayment(sessionId, userId);
+        } else if (!sessionId || !userId) {
             setStatus('error')
             console.log("userID",userId)
             console.log("sessionID",sessionId)
             console.log("status change:1")
         }
-    }, [searchParams]);
+   
+    }, []);
 
     useEffect(() => {
         if (status === 'success') {
@@ -101,7 +123,7 @@ export default function PaymentSuccessPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                         </div>
-                        <h1 className="text-3xl font-bold text-white mb-2">Payment Successful! 🎉</h1>
+                        <h1 className="text-3xl font-bold text-white mb-2">Payment Successful! </h1>
                         <p className="text-gray-400 mb-4">Your credits have been added to your account.</p>
                         {credits !== null && (
                             <div className="bg-green-500/20 rounded-xl p-4 mb-6">
