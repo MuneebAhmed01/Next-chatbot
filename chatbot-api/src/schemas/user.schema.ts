@@ -26,6 +26,12 @@ export class User extends Document {
 
   @Prop({ type: Boolean, default: false })
   isVerified: boolean;
+
+  @Prop({ type: Number, default: 0 })
+  credits: number;
+
+  @Prop({ type: String, default: null })
+  stripeCustomerId: string | null;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

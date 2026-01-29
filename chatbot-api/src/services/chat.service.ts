@@ -1,16 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { chatThreads, userUsage, ChatThread, ChatMessage } from '../data/chat.data';
 import { SendMessageDto, SaveChatDto, ChatSidebarItemDto } from '../dto/chat.dto';
 import { v4 as uuidv4 } from 'uuid';
-// Add these imports:
 import fetch from 'node-fetch';
+import { PaymentService } from './payment.service';
 
 @Injectable()
 export class ChatService {
   private chats: ChatThread[] = [...chatThreads];
   private usage = { ...userUsage };
 
-  //sidebar items
+  constructor(private readonly paymentService: PaymentService) { }
+
+  // Sidebar items
   getSidebarChats(): ChatSidebarItemDto[] {
     return this.chats
       .map(chat => ({
@@ -18,15 +20,15 @@ export class ChatService {
         title: chat.title,
         updatedAt: chat.updatedAt,
       }))
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
 
-  //full chat history
+  // Full chat history
   getChatHistory(): ChatThread[] {
-    return this.chats.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    return this.chats.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
 
-  //specific chat by id
+  // Specific chat by id
   getChatById(id: string): ChatThread {
     const chat = this.chats.find(c => c.id === id);
     if (!chat) {
@@ -35,13 +37,13 @@ export class ChatService {
     return chat;
   }
 
-  // Replace this function:
+  // Get OpenRouter response
   async getOpenRouterResponse(prompt: string): Promise<string> {
     const apiKey = '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';
     const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
 
     const body = {
-      model: 'openai/gpt-3.5-turbo', // or another model if you want
+      model: 'openai/gpt-3.5-turbo',
       messages: [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: prompt }
@@ -62,7 +64,6 @@ export class ChatService {
       throw new Error(`OpenRouter API error: ${response.statusText}`);
     }
 
-    // Fix: assert the type of data
     const data = await response.json() as {
       choices?: { message?: { content?: string } }[];
     };
@@ -71,7 +72,15 @@ export class ChatService {
   }
 
   // Send message and get AI response
-  async sendMessage(dto: SendMessageDto): Promise<{ chat: ChatThread; response: ChatMessage }> {
+  async sendMessage(dto: SendMessageDto): Promise<{ chat: ChatThread; response: ChatMessage; credits?: number }> {
+    // Check credits if userId is provided
+    if (dto.userId) {
+      const hasCredits = await this.paymentService.hasCredits(dto.userId);
+      if (!hasCredits) {
+        throw new BadRequestException('No credits available. Please purchase more credits to continue.');
+      }
+    }
+
     let chat: ChatThread | undefined;
 
     if (dto.chatId) {
@@ -84,8 +93,8 @@ export class ChatService {
       chat = {
         id: `chat-${uuidv4()}`,
         title: dto.message.slice(0, 30) + (dto.message.length > 30 ? '...' : ''),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         messages: [],
       };
       this.chats.push(chat);
@@ -96,7 +105,7 @@ export class ChatService {
       id: `msg-${uuidv4()}`,
       role: 'user',
       content: dto.message,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
     chat.messages.push(userMessage);
 
@@ -112,15 +121,22 @@ export class ChatService {
       id: `msg-${uuidv4()}`,
       role: 'assistant',
       content: aiContent,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
     chat.messages.push(aiResponse);
-    chat.updatedAt = new Date();
+    chat.updatedAt = new Date().toISOString();
 
-    // Update usage
+    // Deduct credit if userId is provided
+    let remainingCredits: number | undefined;
+    if (dto.userId) {
+      const result = await this.paymentService.deductCredit(dto.userId);
+      remainingCredits = result.credits;
+    }
+
+    // Update in-memory usage (for backward compatibility)
     this.usage.messagesUsed += 1;
 
-    return { chat, response: aiResponse };
+    return { chat, response: aiResponse, credits: remainingCredits };
   }
 
   // Save/update chat
@@ -133,7 +149,7 @@ export class ChatService {
     if (dto.title) {
       chat.title = dto.title;
     }
-    chat.updatedAt = new Date();
+    chat.updatedAt = new Date().toISOString();
 
     return chat;
   }

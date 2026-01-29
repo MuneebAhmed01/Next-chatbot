@@ -1,84 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyOTP, hasValidOTP } from '@/lib/otp-store';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, name, otp } = await request.json();
+    const { email, otp, name, password } = await request.json(); // password might be passed but verify endpoint only needs email/otp usually if user is already temp saved
 
-    // Debug logging
-    console.log('=== REGISTER DEBUG ===');
-    console.log('Email:', email);
-    console.log('OTP received:', otp);
-    console.log('Has valid OTP in store:', hasValidOTP(email, 'register'));
-
-    // Check if fields are filled
-    if (!email || !password || !name || !otp) {
+    if (!email || !otp) {
       return NextResponse.json(
-        { success: false, error: 'All fields are required' },
+        { success: false, error: 'Email and OTP are required' },
         { status: 400 }
       );
     }
 
-    if (password.length < 8) {
+    // Call backend to verify OTP and finalize signup
+    try {
+      const backendRes = await fetch('http://localhost:4000/user/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const data = await backendRes.json();
+
+      if (backendRes.ok) {
+        // Verification successful. Backend returns { message, userId }
+        const userId = data.userId;
+
+        // Create success response
+        const response = NextResponse.json({
+          success: true,
+          message: 'Registration successful',
+          user: { email, name, id: userId },
+        });
+
+        // Set Auth Cookie
+        response.cookies.set('auth', 'true', {
+          httpOnly: false, // Allow client access if needed
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 7, // 1 week
+          path: '/',
+        });
+
+        // Set User Cookie (Important: Include ID for Stripe credits!)
+        response.cookies.set('user', JSON.stringify({
+          email,
+          name,
+          id: userId
+        }), {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 7,
+          path: '/',
+        });
+
+        return response;
+      } else {
+        return NextResponse.json(
+          { success: false, error: data.message || 'Invalid OTP' },
+          { status: 400 }
+        );
+      }
+    } catch (err) {
+      console.error('Backend connection error:', err);
       return NextResponse.json(
-        { success: false, error: 'Password must be at least 8 characters' },
-        { status: 400 }
+        { success: false, error: 'Failed to connect to authentication service' },
+        { status: 503 }
       );
     }
 
-    // Normalize OTP - remove any spaces and ensure it's a string
-    const normalizedOTP = String(otp).trim();
-    const normalizedEmail = email.toLowerCase().trim();
-
-    if (normalizedOTP.length !== 6) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid OTP format' },
-        { status: 400 }
-      );
-    }
-
-    console.log('Normalized email:', normalizedEmail);
-    console.log('Normalized OTP:', normalizedOTP);
-
-    // Verify OTP
-    const isValidOTP = verifyOTP(normalizedEmail, normalizedOTP, 'register');
-    console.log('OTP verification result:', isValidOTP);
-
-    if (!isValidOTP) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid or expired OTP. Please request a new one.' },
-        { status: 400 }
-      );
-    }
-
-    // TODO: After connecting to db, hash password and save user
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    // await db.user.create({ email: normalizedEmail, password: hashedPassword, name });
-
-    // Response
-    const response = NextResponse.json({
-      success: true,
-      message: 'Registration successful',
-      user: { email: normalizedEmail, name },
-    });
-
-    response.cookies.set('auth', 'true', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    });
-
-    response.cookies.set('user', JSON.stringify({ email: normalizedEmail, name }), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    });
-
-    return response;
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(

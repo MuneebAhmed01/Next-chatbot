@@ -11,41 +11,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Replace with real database check
-    // const user = await db.user.findUnique({ where: { email } });
-    // const isValid = await bcrypt.compare(password, user.password);
+    const normalizedEmail = email.toLowerCase().trim();
 
-    // For now, accept any valid email/password format
-    if (email && password.length >= 8) {
-      const response = NextResponse.json({
-        success: true,
-        message: 'Login successful',
-        user: { email },
-      });
+    // Call backend API for authentication
+    const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: normalizedEmail,
+        password
+      })
+    });
 
-      response.cookies.set('auth', 'true', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/',
-      });
+    const result = await loginResponse.json();
 
-      response.cookies.set('user', JSON.stringify({ email }), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/',
-      });
-
-      return response;
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: loginResponse.status }
+      );
     }
 
-    return NextResponse.json(
-      { success: false, error: 'Invalid email or password' },
-      { status: 401 }
-    );
+    //res on succesfull login
+    const response = NextResponse.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+      },
+    });
+
+    response.cookies.set('auth', 'true', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    });
+
+    response.cookies.set('user', JSON.stringify({
+      id: result.user.id,
+      email: result.user.email,
+      name: result.user.name,
+    }), {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

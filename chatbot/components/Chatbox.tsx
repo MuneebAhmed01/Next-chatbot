@@ -31,9 +31,6 @@ export  default function Chatbox (){
           </div>
         )}
 
-    
-
-        {/* Three Dots Loading will use later in end*/}
         {loading && (
           <div className="loader flex items-center gap-1.5">
             <div className="w-1.5 h-1.5 rounded-full bg-gray-500 dark:bg-white animate-bounce"></div>

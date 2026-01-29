@@ -2,26 +2,26 @@ import { Controller, Get, Post, Body } from "@nestjs/common";
 import { UserService } from "../services/user.service";
 import { SignupDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from "../dto/user.dto";
 
-@Controller("user") 
+@Controller("user")
 export class UsersController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get("login")
   showLoginPage() {
-    return { message: "Welcome to the login page", status: "success" }; 
+    return { message: "Welcome to the login page", status: "success" };
   }
 
-  @Post("login") 
+  @Post("login")
   async login(@Body() loginDto: LoginDto) {
-    return this.userService.login(loginDto.email, loginDto.password); 
+    return this.userService.login(loginDto.email, loginDto.password);
   }
 
   @Get("signup")
   showSignupPage() {
-    return { message: "Welcome to the signup page", status: "success" }; 
+    return { message: "Welcome to the signup page", status: "success" };
   }
 
-  @Post("signup") 
+  @Post("signup")
   async signup(@Body() body: { name: string; email: string; password: string }) {
     return this.userService.initiateSignup(body.name, body.email, body.password);
   }
@@ -47,5 +47,10 @@ export class UsersController {
   @Post("resend-otp")
   async resendOTP(@Body() body: { email: string }) {
     return this.userService.resendOTP(body.email);
+  }
+
+  @Post("google-auth")
+  async googleAuth(@Body() body: { email: string; name: string; googleId: string }) {
+    return this.userService.googleLogin(body.email, body.name, body.googleId);
   }
 }

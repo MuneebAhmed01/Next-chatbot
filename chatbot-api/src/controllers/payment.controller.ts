@@ -1,14 +1,56 @@
+import { Controller, Get, Post, Body, Param, Headers, Req, RawBodyRequest } from '@nestjs/common';
+import { PaymentService } from '../services/payment.service';
 
-import { Controller,Get,Body } from "@nestjs/common";
-@Controller("Chat")
- export class UsersController{
-// Handles Stripe integration.
+@Controller('payment')
+export class PaymentController {
+    constructor(private readonly paymentService: PaymentService) { }
 
-// POST /payment/create → Create Stripe payment session
+    // Create Stripe checkout session
+    @Post('create-checkout-session')
+    async createCheckoutSession(
+        @Body() body: { userId: string; email: string }
+    ): Promise<{ url: string }> {
+        return this.paymentService.createCheckoutSession(body.userId, body.email);
+    }
 
-// GET /payment/confirm → Confirm payment status
+    // Handle payment success (called after redirect)
+    @Post('confirm')
+    async confirmPayment(
+        @Body() body: { sessionId: string }
+    ): Promise<{ credits: number }> {
+        return this.paymentService.handlePaymentSuccess(body.sessionId);
+    }
 
-// POST /payment/webhook → Stripe webhook for subscription updates
+    // Get user credits
+    @Get('credits/:userId')
+    async getUserCredits(
+        @Param('userId') userId: string
+    ): Promise<{ credits: number }> {
+        return this.paymentService.getUserCredits(userId);
+    }
 
-// GET /payment/history → Show past payments
- }
+    // Deduct credit after message
+    @Post('deduct')
+    async deductCredit(
+        @Body() body: { userId: string }
+    ): Promise<{ credits: number; success: boolean }> {
+        return this.paymentService.deductCredit(body.userId);
+    }
+
+    // Check if user has credits
+    @Get('has-credits/:userId')
+    async hasCredits(
+        @Param('userId') userId: string
+    ): Promise<{ hasCredits: boolean }> {
+        const hasCredits = await this.paymentService.hasCredits(userId);
+        return { hasCredits };
+    }
+
+    // Add credits (for testing or admin purposes)
+    @Post('add-credits')
+    async addCredits(
+        @Body() body: { userId: string; amount: number }
+    ): Promise<{ credits: number }> {
+        return this.paymentService.addCredits(body.userId, body.amount);
+    }
+}

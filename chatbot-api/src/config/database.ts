@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI!;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error('invalid link');
+  console.warn('MONGODB_URI not found in environment variables');
 }
 
 let cached = (global as any).mongoose;
@@ -13,6 +13,10 @@ if (!cached) {
 }
 
 export async function connectDB() {
+  if (!MONGODB_URI) {
+    throw new Error('MongoDB connection not configured. Please set MONGODB_URI environment variable.');
+  }
+
   if (cached.conn) {
     return cached.conn;
   }

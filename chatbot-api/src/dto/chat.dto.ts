@@ -2,12 +2,16 @@ import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class SendMessageDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   chatId?: string;
 
   @IsString()
   @IsNotEmpty()
   message: string;
+
+  @IsString()
+  @IsOptional()
+  userId?: string;
 }
 
 export class SaveChatDto {
@@ -23,7 +27,7 @@ export class SaveChatDto {
 export class ChatSidebarItemDto {
   id: string;
   title: string;
-  updatedAt: Date;
+  updatedAt: string;
 }
 
 export class ChatResponseDto {
