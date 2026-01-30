@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { validateApiRequest } from '../../../../lib/validation/api-validation';
+import { registerSchema } from '../../../../lib/validation/schemas';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, purpose, name, password } = await request.json();
-
-    if (!email || !purpose) {
-      return NextResponse.json({ error: 'Email and purpose required' }, { status: 400 });
-    }
-
-    if (purpose === 'register') {
-      if (!name || !password) {
+    const body = await request.json();
     
-        return NextResponse.json({ error: 'Name and password required for registration' }, { status: 400 });
+    if (body.purpose === 'register') {
+      const validation = validateApiRequest(registerSchema, request);
+      
+      if (!validation.success) {
+        return validation.error!;
       }
+      
+      const { name, email, password } = validation.data!;
 
       try {
         const backendRes = await fetch('http://localhost:4000/user/signup', {
