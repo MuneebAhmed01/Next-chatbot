@@ -2,24 +2,37 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { validateForm, getFieldError } from '../../lib/validation/client-validation';
+import { loginSchema, type LoginFormData } from '../../lib/validation/schemas';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const router = useRouter();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setFieldErrors({});
+
+    const formData: LoginFormData = { email, password };
+    const validation = validateForm(loginSchema, formData);
+    
+    if (!validation.success) {
+      setFieldErrors(validation.errors || {});
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(validation.data),
       });
 
       const data = await res.json();
@@ -56,23 +69,35 @@ export default function LoginPage() {
           <div>
             <input
               type="email"
-              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                getFieldError(fieldErrors, 'email') 
+                  ? 'border-red-500' 
+                  : 'border-gray-300'
+              }`}
             />
+            {getFieldError(fieldErrors, 'email') && (
+              <p className="mt-1 text-sm text-red-600">{getFieldError(fieldErrors, 'email')}</p>
+            )}
           </div>
 
           <div>
             <input
               type="password"
-              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                getFieldError(fieldErrors, 'password') 
+                  ? 'border-red-500' 
+                  : 'border-gray-300'
+              }`}
             />
+            {getFieldError(fieldErrors, 'password') && (
+              <p className="mt-1 text-sm text-red-600">{getFieldError(fieldErrors, 'password')}</p>
+            )}
           </div>
 
           <div className="flex items-center justify-between text-sm">

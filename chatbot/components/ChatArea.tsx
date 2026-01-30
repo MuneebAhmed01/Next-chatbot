@@ -2,6 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import { chatService, ChatMessage } from "../services/chatService";
 import Message from "./Message";
+import ModelSelector from "./ModelSelector";
+import ContextIndicator from "./ContextIndicator";
+import { DEFAULT_MODEL, type ModelId } from "../lib/models";
 
 type ChatAreaProps = {
   chatId: string | null;
@@ -16,6 +19,7 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<ModelId>(DEFAULT_MODEL);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -64,7 +68,7 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
 
     try {
       console.log('ChatArea.handleSend: Calling chatService.sendMessage');
-      const result = await chatService.sendMessage(chatId || null, userMessage, userId);
+      const result = await chatService.sendMessage(chatId || null, userMessage, userId, selectedModel);
       console.log('ChatArea.handleSend: Received result', result);
 
       if (result && result.chat && Array.isArray(result.chat.messages)) {
@@ -188,7 +192,15 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
 
       {/* Input */}
       <form onSubmit={handleSend} className="p-4 border-t border-gray-700">
+        <div className="flex gap-3 max-w-4xl mx-auto mb-3">
+          <ContextIndicator messageCount={messages.length} maxContext={10} />
+        </div>
         <div className="flex gap-3 max-w-4xl mx-auto">
+          <ModelSelector
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
+            disabled={loading || credits <= 0}
+          />
           <input
             type="text"
             value={input}

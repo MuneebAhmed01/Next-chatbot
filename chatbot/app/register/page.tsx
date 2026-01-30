@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { validateForm, getFieldError } from '../../lib/validation/client-validation';
+import { registerSchema, otpSchema, type RegisterFormData, type OtpFormData } from '../../lib/validation/schemas';
 
 export default function RegisterPage() {
   const [step, setStep] = useState(1);
@@ -11,12 +13,23 @@ export default function RegisterPage() {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const router = useRouter();
 
   const sendOTP = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setLoading(true);
     setError('');
+    setFieldErrors({});
+
+    const formData: RegisterFormData = { name, email, password };
+    const validation = validateForm(registerSchema, formData);
+    
+    if (!validation.success) {
+      setFieldErrors(validation.errors || {});
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch('/api/auth/send-otp', {
@@ -41,14 +54,18 @@ export default function RegisterPage() {
 
   const verifyAndRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (otp.length !== 6) {
-      setError('Please enter a valid 6-digit OTP');
-      return;
-    }
-
     setLoading(true);
     setError('');
+    setFieldErrors({});
+
+    const formData: OtpFormData = { otp };
+    const validation = validateForm(otpSchema, formData);
+    
+    if (!validation.success) {
+      setFieldErrors(validation.errors || {});
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch('/api/auth/register', {
@@ -101,29 +118,46 @@ export default function RegisterPage() {
           <form onSubmit={sendOTP} className="space-y-6">
             <input
               type="text"
-              required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Full name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                getFieldError(fieldErrors, 'name') 
+                  ? 'border-red-500' 
+                  : 'border-gray-300'
+              }`}
             />
+            {getFieldError(fieldErrors, 'name') && (
+              <p className="mt-1 text-sm text-red-600">{getFieldError(fieldErrors, 'name')}</p>
+            )}
             <input
               type="email"
-              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                getFieldError(fieldErrors, 'email') 
+                  ? 'border-red-500' 
+                  : 'border-gray-300'
+              }`}
             />
+            {getFieldError(fieldErrors, 'email') && (
+              <p className="mt-1 text-sm text-red-600">{getFieldError(fieldErrors, 'email')}</p>
+            )}
             <input
               type="password"
-              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password (min 8 characters)"
-              minLength={8}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Password (min 6 characters)"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                getFieldError(fieldErrors, 'password') 
+                  ? 'border-red-500' 
+                  : 'border-gray-300'
+              }`}
             />
+            {getFieldError(fieldErrors, 'password') && (
+              <p className="mt-1 text-sm text-red-600">{getFieldError(fieldErrors, 'password')}</p>
+            )}
             <button
               type="submit"
               disabled={loading}
@@ -145,7 +179,6 @@ export default function RegisterPage() {
             </div>
             <input
               type="text"
-              required
               value={otp}
               onChange={(e) => {
                 const val = e.target.value.replace(/\D/g, '');
@@ -154,8 +187,15 @@ export default function RegisterPage() {
               }}
               placeholder="Enter 6-digit OTP"
               maxLength={6}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-2xl tracking-widest"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-2xl tracking-widest ${
+                getFieldError(fieldErrors, 'otp') 
+                  ? 'border-red-500' 
+                  : 'border-gray-300'
+              }`}
             />
+            {getFieldError(fieldErrors, 'otp') && (
+              <p className="mt-1 text-sm text-red-600">{getFieldError(fieldErrors, 'otp')}</p>
+            )}
             <button
               type="submit"
               disabled={loading || otp.length !== 6}
