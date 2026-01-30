@@ -1,6 +1,8 @@
 import { Controller, Get, Post, Body } from "@nestjs/common";
 import { UserService } from "../services/user.service";
-import { SignupDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from "../dto/user.dto";
+import type { SignupDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from "../zod-schemas/user.schema";
+import { signupSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from "../zod-schemas/user.schema";
+import { ZodValidationPipe } from "../pipes/zod-validation.pipe";
 
 @Controller("user")
 export class UsersController {
@@ -12,7 +14,7 @@ export class UsersController {
   }
 
   @Post("login")
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body(new ZodValidationPipe(loginSchema)) loginDto: LoginDto) {
     return this.userService.login(loginDto.email, loginDto.password);
   }
 
@@ -22,17 +24,17 @@ export class UsersController {
   }
 
   @Post("signup")
-  async signup(@Body() body: { name: string; email: string; password: string }) {
-    return this.userService.initiateSignup(body.name, body.email, body.password);
+  async signup(@Body(new ZodValidationPipe(signupSchema)) signupDto: SignupDto) {
+    return this.userService.initiateSignup(signupDto.name, signupDto.email, signupDto.password);
   }
 
   @Post("forgot-password")
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+  async forgotPassword(@Body(new ZodValidationPipe(forgotPasswordSchema)) forgotPasswordDto: ForgotPasswordDto) {
     return this.userService.forgotPassword(forgotPasswordDto.email);
   }
 
   @Post("reset-password")
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(@Body(new ZodValidationPipe(resetPasswordSchema)) resetPasswordDto: ResetPasswordDto) {
     return this.userService.resetPassword(
       resetPasswordDto.token,
       resetPasswordDto.newPassword,

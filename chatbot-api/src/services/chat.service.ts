@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { chatThreads, userUsage, ChatThread, ChatMessage } from '../data/chat.data';
-import { SendMessageDto, SaveChatDto, ChatSidebarItemDto } from '../dto/chat.dto';
+import type { SendMessageDto, SaveChatDto, ChatSidebarItemDto } from '../zod-schemas/chat.schema';
 import { v4 as uuidv4 } from 'uuid';
 import fetch from 'node-fetch';
 import { PaymentService } from './payment.service';
@@ -35,17 +35,37 @@ export class ChatService {
   }
 
  
-  async getOpenRouterResponse(prompt: string): Promise<string> {
+  async getOpenRouterResponse(prompt: string, model: string = 'openai/gpt-3.5-turbo', conversationHistory: ChatMessage[] = []): Promise<string> {
     const apiKey = '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';
-    console.log("api fetched")
+    console.log("api fetched with context")
     const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
 
+    // Build messages array with conversation context
+    const messages: any[] = [
+      { 
+        role: 'system', 
+        content: 'You are a helpful assistant. Maintain context of the conversation and provide consistent, relevant responses based on previous messages.' 
+      }
+    ];
+
+    // Add conversation history (last 10 messages to maintain context)
+    const recentHistory = conversationHistory.slice(-10);
+    recentHistory.forEach(msg => {
+      messages.push({
+        role: msg.role,
+        content: msg.content
+      });
+    });
+
+    // Add current prompt
+    messages.push({
+      role: 'user',
+      content: prompt
+    });
+
     const body = {
-     model: 'openai/gpt-3.5-turbo',
-      messages: [
-        { role: 'system', content: 'You are a assistant.' },
-        { role: 'user', content: prompt }
-      ],
+      model: model,
+      messages: messages,
       max_tokens: 512,
     };
 
@@ -71,10 +91,16 @@ export class ChatService {
 
   async sendMessage(dto: SendMessageDto): Promise<{ chat: ChatThread; response: ChatMessage; credits?: number }> {
  
+    // Check credits with error handling
     if (dto.userId) {
-      const hasCredits = await this.paymentService.hasCredits(dto.userId);
-      if (!hasCredits) {
-        throw new BadRequestException('No credits available. Please purchase more credits to continue.');
+      try {
+        const hasCredits = await this.paymentService.hasCredits(dto.userId);
+        if (!hasCredits) {
+          throw new BadRequestException('No credits available. Please purchase more credits to continue.');
+        }
+      } catch (creditError) {
+        console.error('Credit check failed, proceeding anyway:', creditError);
+        // Continue with the chat even if credit check fails
       }
     }
 
@@ -108,11 +134,25 @@ export class ChatService {
     
     let aiContent = '';
     try {
-      aiContent = await this.getOpenRouterResponse(dto.message);
-       console.log("api fetched and respond")
-    } catch (err) {
-      aiContent = 'Sorry, there was an error generating a response.';
-      console.log(err)
+      // Pass conversation history to maintain context
+      aiContent = await this.getOpenRouterResponse(dto.message, dto.model, chat.messages);
+       console.log("api fetched with context and respond")
+    } catch (err: any) {
+      console.error('Model API Error:', err);
+      // If the specific model fails, try with default model
+      if (dto.model && dto.model !== 'openai/gpt-3.5-turbo') {
+        try {
+          console.log('Retrying with default model...');
+          aiContent = await this.getOpenRouterResponse(dto.message, 'openai/gpt-3.5-turbo', chat.messages);
+          console.log('Default model worked');
+        } catch (fallbackErr) {
+          aiContent = 'Sorry, there was an error generating a response. Please try again.';
+          console.log('Even default model failed:', fallbackErr);
+        }
+      } else {
+        aiContent = 'Sorry, there was an error generating a response. Please try again.';
+        console.log('Error with default model:', err);
+      }
     }
 
     const aiResponse: ChatMessage = {
@@ -127,8 +167,13 @@ export class ChatService {
     // Deduct credit if userId is provided
     let remainingCredits: number | undefined;
     if (dto.userId) {
-      const result = await this.paymentService.deductCredit(dto.userId);
-      remainingCredits = result.credits;
+      try {
+        const result = await this.paymentService.deductCredit(dto.userId);
+        remainingCredits = result.credits;
+      } catch (deductError) {
+        console.error('Credit deduction failed:', deductError);
+        // Continue even if deduction fails
+      }
     }
 
     

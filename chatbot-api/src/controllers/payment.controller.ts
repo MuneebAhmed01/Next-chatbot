@@ -1,5 +1,18 @@
 import { Controller, Get, Post, Body, Param, Headers, Req, RawBodyRequest } from '@nestjs/common';
 import { PaymentService } from '../services/payment.service';
+import type {
+  CreateCheckoutSessionDto,
+  ConfirmPaymentDto,
+  DeductCreditDto,
+  AddCreditsDto,
+} from '../zod-schemas/payment.schema';
+import {
+  createCheckoutSessionSchema,
+  confirmPaymentSchema,
+  deductCreditSchema,
+  addCreditsSchema,
+} from '../zod-schemas/payment.schema';
+import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 
 @Controller('payment')
 export class PaymentController {
@@ -8,14 +21,14 @@ export class PaymentController {
     
     @Post('create-checkout-session')
     async createCheckoutSession(
-        @Body() body: { userId: string; email: string }
+        @Body(new ZodValidationPipe(createCheckoutSessionSchema)) body: CreateCheckoutSessionDto
     ): Promise<{ url: string }> {
         return this.paymentService.createCheckoutSession(body.userId, body.email);
     }
 
     @Post('confirm')
     async confirmPayment(
-        @Body() body: { sessionId: string }
+        @Body(new ZodValidationPipe(confirmPaymentSchema)) body: ConfirmPaymentDto
     ): Promise<{ credits: number }> {
         return this.paymentService.handlePaymentSuccess(body.sessionId);
     }
@@ -31,7 +44,7 @@ export class PaymentController {
    
     @Post('deduct')
     async deductCredit(
-        @Body() body: { userId: string }
+        @Body(new ZodValidationPipe(deductCreditSchema)) body: DeductCreditDto
     ): Promise<{ credits: number; success: boolean }> {
         return this.paymentService.deductCredit(body.userId);
     }
@@ -46,7 +59,7 @@ export class PaymentController {
 
     @Post('add-credits')
     async addCredits(
-        @Body() body: { userId: string; amount: number }
+        @Body(new ZodValidationPipe(addCreditsSchema)) body: AddCreditsDto
     ): Promise<{ credits: number }> {
         return this.paymentService.addCredits(body.userId, body.amount);
     }
