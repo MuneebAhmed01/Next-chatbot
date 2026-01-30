@@ -9,37 +9,38 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { ChatService } from "../services/chat.service";
-import {
+import type {
   SendMessageDto,
   SaveChatDto,
   ChatResponseDto,
-} from "../dto/chat.dto";
+} from "../zod-schemas/chat.schema";
+import {
+  sendMessageSchema,
+  saveChatSchema,
+} from "../zod-schemas/chat.schema";
+import { ZodValidationPipe } from "../pipes/zod-validation.pipe";
 
 @Controller("chat")
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  
   @Get("sidebar")
   getSidebarChats(): ChatResponseDto {
     const data = this.chatService.getSidebarChats();
     return { success: true, data };
   }
 
- 
   @Get("history")
   getChatHistory(): ChatResponseDto {
     const data = this.chatService.getChatHistory();
     return { success: true, data };
   }
 
-  
   @Get("usage")
   getUsage(): ChatResponseDto {
     const data = this.chatService.getUsage();
     return { success: true, data };
   }
-
 
   @Get(":id")
   getChatById(@Param("id") id: string): ChatResponseDto {
@@ -49,14 +50,14 @@ export class ChatController {
 
   @Post("send")
   @HttpCode(HttpStatus.OK)
-  async sendMessage(@Body() dto: SendMessageDto): Promise<ChatResponseDto> {
+  async sendMessage(@Body(new ZodValidationPipe(sendMessageSchema)) dto: SendMessageDto): Promise<ChatResponseDto> {
     const data = await this.chatService.sendMessage(dto);
     return { success: true, data };
   }
 
   @Post("save")
   @HttpCode(HttpStatus.OK)
-  saveChat(@Body() dto: SaveChatDto): ChatResponseDto {
+  saveChat(@Body(new ZodValidationPipe(saveChatSchema)) dto: SaveChatDto): ChatResponseDto {
     const data = this.chatService.saveChat(dto);
     return { success: true, data };
   }
