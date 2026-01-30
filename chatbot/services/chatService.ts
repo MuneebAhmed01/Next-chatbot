@@ -35,12 +35,12 @@ export const chatService = {
     return data.data;
   },
 
-  async sendMessage(chatId: string | null, message: string, userId?: string): Promise<{ chat: ChatThread; response: ChatMessage; credits?: number }> {
-    console.log('Sending message', { chatId, message, userId });
+  async sendMessage(chatId: string | null, message: string, userId?: string, model?: string): Promise<{ chat: ChatThread; response: ChatMessage; credits?: number }> {
+    console.log('Sending message', { chatId, message, userId, model });
     const res = await fetch(`${API_BASE}/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chatId, message, userId }),
+      body: JSON.stringify({ chatId, message, userId, model }),
     });
     const data = await res.json();
     console.log('Received response', data);

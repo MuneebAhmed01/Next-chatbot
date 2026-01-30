@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { validateApiRequest } from '../../../../lib/validation/api-validation';
+import { loginSchema } from '../../../../lib/validation/schemas';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { success: false, error: 'Email and password required' },
-        { status: 400 }
-      );
+    const validation = validateApiRequest(loginSchema, request);
+    
+    if (!validation.success) {
+      return validation.error!;
     }
+    
+    const { email, password } = validation.data!;
 
     const normalizedEmail = email.toLowerCase().trim();
 
