@@ -163,11 +163,31 @@ export class ChatService {
 
       // Prepare messages for OpenRouter API
       const modelToUse = dto.model && dto.model !== null ? dto.model : 'openai/gpt-3.5-turbo';
-      const messages = [
+      
+      // Get conversation history if chatId exists
+      let conversationHistory: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [];
+      
+      if (chatId) {
+        const existingChat = await this.chatModel
+          .findById(chatId)
+          .populate('messages')
+          .lean();
+        
+        if (existingChat && existingChat.messages) {
+          conversationHistory = existingChat.messages.map((msg: any) => ({
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content
+          }));
+        }
+      }
+      
+      // Build messages array with system prompt, conversation history, and new message
+      const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
         {
           role: 'system' as const,
-          content: 'You are a helpful AI assistant. Please provide thoughtful and accurate responses.'
+          content: 'You are a helpful AI assistant. Please provide thoughtful and accurate responses. Remember the context of our conversation and refer back to previous messages when relevant.'
         },
+        ...conversationHistory,
         {
           role: 'user' as const,
           content: dto.message || ''
