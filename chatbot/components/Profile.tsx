@@ -135,7 +135,7 @@ export default function Profile({ userId, userEmail, userName, credits, onBuyCre
 
           {/* Credits Section */}
           <div className="mt-8 pt-8 border-t border-gray-700">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6">
+            <div className="bg-purple-600 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-white text-lg font-semibold">Available Credits</h3>
