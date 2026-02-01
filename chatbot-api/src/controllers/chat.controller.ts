@@ -66,9 +66,9 @@ async getModels(): Promise<ChatResponseDto> {
   }
 
   @Get(":id")
-  async getChatById(@Param("id") id: string, @Body() body: { userId?: string }): Promise<ChatResponseDto> {
+  async getChatById(@Param("id") id: string): Promise<ChatResponseDto> {
     try {
-      const data = await this.chatService.getChatById(id, body.userId);
+      const data = await this.chatService.getChatById(id);
       return { success: true, data };
     } catch (error) {
       return { success: false, message: error.message };

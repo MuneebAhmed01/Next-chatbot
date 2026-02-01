@@ -100,14 +100,16 @@ export class ChatService {
 
   async getChatById(id: string, userId?: string) {
     try {
-      if (!userId) {
-        return { id, messages: [], title: 'Unauthorized' };
-      }
-
-      const chat = await this.chatModel
-        .findOne({ _id: id, userId })
-        .populate('messages')
-        .lean();
+      // For anonymous users or when userId is not provided, fetch chat without userId filter
+      const chat = userId 
+        ? await this.chatModel
+            .findOne({ _id: id, userId })
+            .populate('messages')
+            .lean()
+        : await this.chatModel
+            .findOne({ _id: id })
+            .populate('messages')
+            .lean();
 
       if (!chat) {
         throw new Error('Chat not found');
