@@ -18,6 +18,11 @@ import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Get("login")
+  showLoginPage() {
+    return { message: "Welcome to the login page", status: "success" };
+  }
+
   @Post("login")
   async login(@Body(new ZodValidationPipe(loginSchema)) loginDto: LoginDto) {
     return this.authService.login(loginDto.email, loginDto.password);
@@ -51,5 +56,10 @@ export class AuthController {
   @Post("resend-otp")
   async resendOTP(@Body() body: { email: string }) {
     return this.authService.resendOTP(body.email);
+  }
+
+  @Post("google-auth")
+  async googleAuth(@Body() body: { email: string; name: string; googleId: string }) {
+    return this.authService.googleLogin(body.email, body.name, body.googleId);
   }
 }
