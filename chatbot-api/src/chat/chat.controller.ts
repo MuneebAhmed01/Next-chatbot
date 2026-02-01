@@ -8,8 +8,8 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ChatService } from "../services/chat.service";
-import { OpenRouterService } from "../services/openrouter.service";
+import { ChatService } from './chat.service';
+import { OpenRouterService } from './openrouter.service';
 import type {
   SendMessageDto,
   SaveChatDto,
