@@ -12,6 +12,10 @@ export class SendMessageDto {
   @IsString()
   @IsOptional()
   userId?: string;
+
+  @IsString()
+  @IsOptional()
+  model?: string;
 }
 
 export class SaveChatDto {

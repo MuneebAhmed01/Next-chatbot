@@ -9,6 +9,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { ChatService } from "../services/chat.service";
+import { OpenRouterService } from "../services/openrouter.service";
 import type {
   SendMessageDto,
   SaveChatDto,
@@ -22,55 +23,97 @@ import { ZodValidationPipe } from "../pipes/zod-validation.pipe";
 
 @Controller("chat")
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(private readonly chatService: ChatService, private readonly openRouterService: OpenRouterService) {}
 
-  @Get("sidebar")
-  getSidebarChats(): ChatResponseDto {
-    const data = this.chatService.getSidebarChats();
+  @Get("models")
+async getModels(): Promise<ChatResponseDto> {
+  try {
+    const data = await this.openRouterService.getModels();
     return { success: true, data };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+@Post("sidebar")
+  async getSidebarChats(@Body() body: { userId?: string }): Promise<ChatResponseDto> {
+    try {
+      const data = await this.chatService.getSidebarChats(body.userId);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
   }
 
   @Get("history")
-  getChatHistory(): ChatResponseDto {
-    const data = this.chatService.getChatHistory();
-    return { success: true, data };
+  async getChatHistory(@Body() body: { userId?: string }): Promise<ChatResponseDto> {
+    try {
+      const data = await this.chatService.getChatHistory(body.userId);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
   }
 
   @Get("usage")
-  getUsage(): ChatResponseDto {
-    const data = this.chatService.getUsage();
-    return { success: true, data };
+  async getUsage(@Body() body: { userId?: string }): Promise<ChatResponseDto> {
+    try {
+      const data = await this.chatService.getUsage(body.userId);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
   }
 
   @Get(":id")
-  getChatById(@Param("id") id: string): ChatResponseDto {
-    const data = this.chatService.getChatById(id);
-    return { success: true, data };
+  async getChatById(@Param("id") id: string, @Body() body: { userId?: string }): Promise<ChatResponseDto> {
+    try {
+      const data = await this.chatService.getChatById(id, body.userId);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
   }
 
   @Post("send")
   @HttpCode(HttpStatus.OK)
   async sendMessage(@Body(new ZodValidationPipe(sendMessageSchema)) dto: SendMessageDto): Promise<ChatResponseDto> {
-    const data = await this.chatService.sendMessage(dto);
-    return { success: true, data };
+    try {
+      const data = await this.chatService.sendMessage(dto);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
   }
 
   @Post("save")
   @HttpCode(HttpStatus.OK)
-  saveChat(@Body(new ZodValidationPipe(saveChatSchema)) dto: SaveChatDto): ChatResponseDto {
-    const data = this.chatService.saveChat(dto);
-    return { success: true, data };
+  async saveChat(@Body(new ZodValidationPipe(saveChatSchema)) dto: SaveChatDto): Promise<ChatResponseDto> {
+    try {
+      const data = await this.chatService.saveChat(dto);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
   }
 
   @Delete("history")
-  deleteChatHistory(): ChatResponseDto {
-    const data = this.chatService.deleteChatHistory();
-    return { success: true, data, message: "Chat history deleted" };
+  async deleteChatHistory(@Body() body: { userId?: string }): Promise<ChatResponseDto> {
+    try {
+      const data = await this.chatService.deleteChatHistory(body.userId);
+      return { success: true, data, message: "Chat history deleted" };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
   }
 
   @Delete(":id")
-  deleteChat(@Param("id") id: string): ChatResponseDto {
-    const data = this.chatService.deleteChat(id);
-    return { success: true, data, message: "Chat deleted" };
+  async deleteChat(@Param("id") id: string, @Body() body: { userId?: string }): Promise<ChatResponseDto> {
+    try {
+      const data = await this.chatService.deleteChat(id, body.userId);
+      return { success: true, data, message: "Chat deleted" };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
   }
 }

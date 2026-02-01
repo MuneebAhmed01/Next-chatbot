@@ -4,7 +4,7 @@ import { loginSchema } from '../../../../lib/validation/schemas';
 
 export async function POST(request: NextRequest) {
   try {
-    const validation = validateApiRequest(loginSchema, request);
+    const validation = await validateApiRequest(loginSchema, request);
     
     if (!validation.success) {
       return validation.error!;

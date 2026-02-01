@@ -1,12 +1,18 @@
 import { Controller, Get, Post, Body } from "@nestjs/common";
 import { UserService } from "../services/user.service";
+import { AuthService } from "../services/auth/auth.service";
+import { OtpService } from "../services/otp/otp.service";
 import type { SignupDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from "../zod-schemas/user.schema";
 import { signupSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from "../zod-schemas/user.schema";
 import { ZodValidationPipe } from "../pipes/zod-validation.pipe";
 
 @Controller("user")
 export class UsersController {
-  constructor(private readonly userService: UserService) { }
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+    private readonly otpService: OtpService
+  ) {}
 
   @Get("login")
   showLoginPage() {
@@ -15,7 +21,7 @@ export class UsersController {
 
   @Post("login")
   async login(@Body(new ZodValidationPipe(loginSchema)) loginDto: LoginDto) {
-    return this.userService.login(loginDto.email, loginDto.password);
+    return this.authService.login(loginDto.email, loginDto.password);
   }
 
   @Get("signup")
@@ -25,34 +31,31 @@ export class UsersController {
 
   @Post("signup")
   async signup(@Body(new ZodValidationPipe(signupSchema)) signupDto: SignupDto) {
-    return this.userService.initiateSignup(signupDto.name, signupDto.email, signupDto.password);
+    return this.authService.initiateSignup(signupDto.name, signupDto.email, signupDto.password);
   }
 
   @Post("forgot-password")
   async forgotPassword(@Body(new ZodValidationPipe(forgotPasswordSchema)) forgotPasswordDto: ForgotPasswordDto) {
-    return this.userService.forgotPassword(forgotPasswordDto.email);
+    return this.authService.forgotPassword(forgotPasswordDto.email);
   }
 
   @Post("reset-password")
   async resetPassword(@Body(new ZodValidationPipe(resetPasswordSchema)) resetPasswordDto: ResetPasswordDto) {
-    return this.userService.resetPassword(
-      resetPasswordDto.token,
-      resetPasswordDto.newPassword,
-    );
+    return this.authService.resetPassword(resetPasswordDto.email, resetPasswordDto.otp, resetPasswordDto.newPassword);
   }
 
   @Post("verify-otp")
   async verifyOTP(@Body() body: { email: string; otp: string }) {
-    return this.userService.verifyOTPAndSignup(body.email, body.otp);
+    return this.otpService.verifyOTP(body.email, body.otp);
   }
 
   @Post("resend-otp")
   async resendOTP(@Body() body: { email: string }) {
-    return this.userService.resendOTP(body.email);
+    return this.otpService.resendOTP(body.email);
   }
 
   @Post("google-auth")
   async googleAuth(@Body() body: { email: string; name: string; googleId: string }) {
-    return this.userService.googleLogin(body.email, body.name, body.googleId);
+    return this.authService.googleLogin(body.email, body.name, body.googleId);
   }
 }

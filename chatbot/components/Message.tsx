@@ -42,23 +42,21 @@ const Message = ({ message }: MessageProps) => {
         <div className="flex items-center justify-end my-4 gap-2">
           <div className="flex flex-col gap-2 p-2 px-4 bg-slate-50 dark:bg-[#57317C]/30 border border-[#80609F]/30 rounded-md max-w-2xl">
             <p className="text-sm dark:text-primary">{message.content}</p>
-            <span className="text-xs text-gray-400 dark:text-[#B1A6C0]">
+            <span className="text-[10px] text-gray-400 dark:text-[#B1A6C0]">
               {moment(message.timestamp).fromNow()}
             </span>
           </div>
-          <img 
-   
-           alt="user" className="w-8 rounded-full" />
+          <div className="w-8 mr-2"></div>
         </div>
       ) : (
-        <div className="inline-flex flex-col gap-2 p-2 px-4 max-w-2xl bg-primary/20 dark:bg-[#57317C]/30 border border-[#80609F]/30 rounded-md my-4 relative">
+        <div className="inline-flex flex-col gap-2 p-2 px-4 max-w-2xl bg-primary/20 dark:bg-[#57317C]/30 border border-[#80609F]/30 rounded-md my-4 relative group">
           {/* Copy response button */}
           <button
             onClick={handleCopyResponse}
-            className="absolute top-2 right-2 text-xs px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 z-10"
+            className="absolute top-2 right-2 p-2 bg-gray-700 text-white rounded hover:bg-gray-600 z-10 opacity-0 group-hover:opacity-100 transition"
             title="Copy full response"
           >
-            Copy response
+            <img src="/copy.svg" alt="Copy" className="w-4 h-4" />
           </button>
           <div ref={messageRef}>
             {message.isImage ? (
@@ -82,11 +80,11 @@ const Message = ({ message }: MessageProps) => {
                             </pre>
                             <button
                               onClick={() => navigator.clipboard.writeText(codeString)}
-                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition bg-gray-700 text-white text-xs px-2 py-1 rounded hover:bg-gray-600"
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition bg-gray-700 text-white p-2 rounded hover:bg-gray-600"
                               title="Copy code"
                               type="button"
                             >
-                              Copy code
+                              <img src="/copy.svg" alt="Copy" className="w-4 h-4" />
                             </button>
                           </div>
                         );
@@ -102,7 +100,7 @@ const Message = ({ message }: MessageProps) => {
               </div>
             )}
           </div>
-          <span>{moment(message.timestamp).fromNow()}</span>
+          <span className="text-[10px] text-gray-400 dark:text-[#B1A6C0]">{moment(message.timestamp).fromNow()}</span>
         </div>
       )}
     </div>

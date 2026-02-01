@@ -7,13 +7,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     
     if (body.purpose === 'register') {
-      const validation = validateApiRequest(registerSchema, request);
+      // Validate the request body directly
+      const validation = registerSchema.safeParse(body);
       
       if (!validation.success) {
-        return validation.error!;
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: 'Validation failed',
+            details: validation.error.issues.map(err => ({
+              field: err.path.join('.'),
+              message: err.message,
+            }))
+          },
+          { status: 400 }
+        );
       }
       
-      const { name, email, password } = validation.data!;
+      const { name, email, password } = validation.data;
 
       try {
         const backendRes = await fetch('http://localhost:4000/user/signup', {

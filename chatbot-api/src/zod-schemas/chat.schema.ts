@@ -4,7 +4,7 @@ export const sendMessageSchema = z.object({
   chatId: z.string().nullable().optional(),
   message: z.string().min(1, 'Message is required'),
   userId: z.string().nullable().optional(),
-  model: z.string().optional().default('openai/gpt-3.5-turbo'),
+  model: z.string().optional(),
 });
 
 export const saveChatSchema = z.object({

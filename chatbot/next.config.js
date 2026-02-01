@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactCompiler: true,
+  // Remove reactCompiler as it's not a valid Next.js option
 };
 
 module.exports = nextConfig;

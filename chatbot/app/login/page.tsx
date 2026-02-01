@@ -11,6 +11,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [resetOtp, setResetOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [resetSuccess, setResetSuccess] = useState('');
   const router = useRouter();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -50,9 +56,158 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address first');
+      return;
+    }
+
+    setResetLoading(true);
+    setResetError('');
+    setResetSuccess('');
+
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setResetSuccess('Password reset OTP sent to your email');
+        setShowPasswordReset(true);
+        setError('');
+      } else {
+        setResetError(data.error || 'Failed to send reset instructions');
+      }
+    } catch (error) {
+      setResetError('Something went wrong. Please try again.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setResetError('');
+
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: resetOtp, newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setResetSuccess('Password reset successful! Redirecting to login...');
+        setTimeout(() => {
+          setShowPasswordReset(false);
+          setResetOtp('');
+          setNewPassword('');
+          setResetSuccess('');
+          setPassword(''); // Clear old password
+        }, 2000);
+      } else {
+        setResetError(data.error || 'Failed to reset password');
+      }
+    } catch (error) {
+      setResetError('Something went wrong. Please try again.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const handleGoogleLogin = () => {
     window.location.href = '/api/auth/google';
   };
+
+  if (showPasswordReset) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+          <div>
+            <h2 className="text-3xl font-bold text-center text-gray-900">Reset password</h2>
+            <p className="mt-2 text-center text-gray-600">
+              Enter OTP and new password for <strong>{email}</strong>
+            </p>
+          </div>
+
+          {resetError && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+              {resetError}
+            </div>
+          )}
+
+          {resetSuccess && (
+            <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
+              {resetSuccess}
+            </div>
+          )}
+
+          <form onSubmit={handlePasswordReset} className="space-y-6">
+            <input
+              type="text"
+              required
+              value={resetOtp}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '');
+                setResetOtp(val);
+              }}
+              placeholder="Enter 6-digit OTP"
+              maxLength={6}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-2xl tracking-widest"
+            />
+            <input
+              type="password"
+              required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New password (min 8 characters)"
+              minLength={8}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="submit"
+              disabled={resetLoading || resetOtp.length !== 6}
+              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition disabled:opacity-50"
+            >
+              {resetLoading ? 'Resetting...' : 'Reset Password'}
+            </button>
+            <div className="text-center space-y-2">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={resetLoading}
+                className="text-sm text-gray-600 hover:text-gray-500 disabled:opacity-50"
+              >
+                Resend OTP
+              </button>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordReset(false);
+                    setResetOtp('');
+                    setNewPassword('');
+                    setResetError('');
+                    setResetSuccess('');
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-500"
+                >
+                  Back to login
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -101,9 +256,14 @@ export default function LoginPage() {
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <a href="/forgot-password" className="text-blue-600 hover:text-blue-500">
-              Forgot password?
-            </a>
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              disabled={!email || resetLoading}
+              className="text-blue-600 hover:text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {resetLoading ? 'Sending...' : 'Forgot password?'}
+            </button>
           </div>
 
           <button

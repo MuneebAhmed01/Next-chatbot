@@ -2,21 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, purpose, otp } = await request.json();
+    const { email } = await request.json();
 
-    if (!email || !otp) {
+    if (!email) {
       return NextResponse.json(
-        { success: false, error: 'Email and OTP are required' },
+        { success: false, error: 'Email is required' },
         { status: 400 }
       );
     }
 
-    // Call backend to verify OTP
+    // Call backend to send password reset OTP
     try {
-      const backendRes = await fetch('http://localhost:4000/user/verify-otp', {
+      const backendRes = await fetch('http://localhost:4000/user/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ email }),
       });
 
       const data = await backendRes.json();
@@ -24,11 +24,12 @@ export async function POST(request: NextRequest) {
       if (backendRes.ok) {
         return NextResponse.json({
           success: true,
-          message: 'OTP verified successfully',
+          message: 'Password reset instructions sent to your email',
+          resetToken: data.resetToken // For development, remove in production
         });
       } else {
         return NextResponse.json(
-          { success: false, error: data.message || 'Invalid OTP' },
+          { success: false, error: data.message || 'Failed to send reset instructions' },
           { status: 400 }
         );
       }
@@ -41,9 +42,9 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Verify OTP error:', error);
+    console.error('Forgot password error:', error);
     return NextResponse.json(
-      { success: false, error: 'Verification failed' },
+      { success: false, error: 'Password reset request failed' },
       { status: 500 }
     );
   }

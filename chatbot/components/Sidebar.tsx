@@ -10,12 +10,15 @@ type SidebarProps = {
   userId?: string;
   userEmail?: string;
   onCreditsChange?: (credits: number) => void;
+  onShowProfile?: () => void;
 };
 
-export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userId, userEmail, onCreditsChange }: SidebarProps) {
+export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userId, userEmail, onCreditsChange, onShowProfile }: SidebarProps) {
   const [chats, setChats] = useState<SidebarItem[]>([]);
   const [credits, setCredits] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
   const router = useRouter();
 
   console.log('Sidebar: Received userId:', userId);
@@ -77,10 +80,11 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
 
   async function loadChats() {
     try {
-      const data = await chatService.getSidebarChats();
-      setChats(data);
+      const data = await chatService.getSidebarChats(userId);
+      setChats(data || []);
     } catch (error) {
       console.error("Failed to load chats:", error);
+      setChats([]);
     }
   }
 
@@ -117,6 +121,10 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
 
   async function handleDeleteChat(id: string, e: React.MouseEvent) {
     e.stopPropagation();
+    setDeleteConfirm(id);
+  }
+
+  async function confirmDeleteChat(id: string) {
     try {
       await chatService.deleteChat(id);
       await loadChats();
@@ -125,6 +133,8 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
       }
     } catch (error) {
       console.error("Failed to delete chat:", error);
+    } finally {
+      setDeleteConfirm(null);
     }
   }
 
@@ -149,7 +159,10 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
   }
 
   function handleLogout() {
-    
+    setLogoutConfirm(true);
+  }
+
+  function confirmLogout() {
     document.cookie = 'auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     document.cookie = 'user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     router.push('/login');
@@ -159,13 +172,13 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
     <div className="flex h-screen w-[17%] min-w-[17%] shrink-0 flex-col bg-black">
 
       {/* Logo Section */}
-      <div className='text-white font-bold text-2xl p-4'>Chat<span className='text-blue-500'> BOT</span></div>
+      <div className='text-white font-bold text-2xl p-4'>Chat<span className='text-purple-500'> BOT</span></div>
 
       {/* Sidebar */}
-      <aside className="flex-1 overflow-hidden border-r flex flex-col">
+      <aside className="flex-1 overflow-hidden flex flex-col">
 
         {/* Header */}
-        <div className="p-4 border-b flex justify-between items-center shrink-0">
+        <div className="p-4 flex justify-between items-center shrink-0">
           <h2 className="font-semibold text-lg text-white">Chats</h2>
           <button
             onClick={createNewChat}
@@ -177,63 +190,78 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
 
         {/* Chat List */}
         <div className="flex-1 overflow-y-auto">
-          {chats.length === 0 && (
+          {(!chats || chats.length === 0) && (
             <p className="text-gray-500 text-sm p-4">No chats yet</p>
           )}
 
-          {chats.map((chat) => (
-            <div
-              key={chat.id}
-              onClick={() => onSelectChat(chat.id)}
-              className={`w-full text-left px-4 py-3 text-sm transition cursor-pointer flex justify-between items-center group
-                ${chat.id === activeChat
-                  ? "bg-gray-700 text-white font-medium"
-                  : "text-gray-300 hover:bg-gray-800"
-                }`}
-            >
-              <span className="truncate flex-1">{chat.title}</span>
-              <button
-                onClick={(e) => handleDeleteChat(chat.id, e)}
-                className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 ml-2"
+          {chats && chats.map((chat) => (
+            <div key={chat.id}>
+              <div
+                onClick={() => onSelectChat(chat.id)}
+                className={`w-full text-left px-4 py-3 text-sm transition cursor-pointer flex justify-between items-center group
+                  ${chat.id === activeChat
+                    ? "bg-gray-700 text-white font-medium"
+                    : "text-gray-300 hover:bg-gray-800"
+                  }`}
               >
-                ✕
-              </button>
+                <span className="truncate flex-1">{chat.title}</span>
+                <button
+                  onClick={(e) => handleDeleteChat(chat.id, e)}
+                  className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              {/* Delete Confirmation Dialog */}
+              {deleteConfirm === chat.id && (
+                <div className="px-4 py-2 bg-gray-800 border-l-4 border-red-500">
+                  <p className="text-white text-sm mb-2">Delete this chat?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => confirmDeleteChat(chat.id)}
+                      className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(null)}
+                      className="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
       </aside>
 
       {/* Bottom buttons */}
-      <div className="border-t border-gray-700 p-3 space-y-2">
-        {/* Available Credits */}
-        <div className="flex items-center justify-between px-3 py-2 border border-gray-600 rounded-xl bg-gradient-to-r from-gray-900 to-gray-800">
-          <div className="flex items-center gap-2">
-           
-            <span className="text-sm font-medium text-white">
-              Credits: <span className={credits > 0 ? "text-green-400" : "text-red-400"}>{credits}</span>
-            </span>
-          </div>
-          <button
-            onClick={handleBuyCredits}
-            disabled={isLoading}
-            className="text-xs px-3 py-1.5 rounded-lg bg-linear-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-medium"
-          >
-            {isLoading ? "..." : "Buy more"}
-          </button>
-        </div>
-
-        {/* Profile */}
+      <div className="p-3 space-y-2">
+        {/* My Profile Button */}
         {userEmail ? (
-          <div className="w-full text-left px-3 py-2 text-sm bg-black text-white border border-gray-600 rounded-xl">
+          <button
+            onClick={() => onShowProfile?.()}
+            className="w-full text-left px-3 py-3 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded-xl transition-all duration-300 font-medium"
+          >
             <div className="flex items-center justify-between">
-              <span> {userEmail}</span>
-              <span className="text-xs text-green-400">✓</span>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>My Profile</span>
+              </div>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </div>
-          </div>
+          </button>
         ) : (
           <button
             onClick={() => router.push('/login')}
-            className="w-full text-left px-3 py-2 text-sm bg-black text-white hover:bg-gray-800 border border-gray-600 rounded-xl"
+            className="w-full text-left px-3 py-2 text-sm bg-gray-800 text-white hover:bg-gray-700 rounded-xl"
           >
              Sign in
           </button>
@@ -242,11 +270,35 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="w-full text-left px-3 py-2 text-sm text-white bg-black hover:bg-gray-800 border border-gray-600 rounded-xl"
+          className="w-full text-left px-3 py-2 text-sm text-white bg-gray-800 hover:bg-gray-700 rounded-xl"
         >
            Logout
         </button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {logoutConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-sm mx-4 border border-gray-700">
+            <h3 className="text-white text-lg font-semibold mb-3">Confirm Logout</h3>
+            <p className="text-gray-300 text-sm mb-6">Are you sure you want to logout?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setLogoutConfirm(false)}
+                className="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

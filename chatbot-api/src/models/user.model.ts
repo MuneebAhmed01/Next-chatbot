@@ -37,6 +37,12 @@ const UserSchema = new mongoose.Schema({
   resetTokenExpiry: {
     type: Date,
   },
+  passwordResetOTP: {
+    type: String,
+  },
+  passwordResetOTPExpiry: {
+    type: Date,
+  },
   stripeCustomerId: {
     type: String,
   },

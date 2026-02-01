@@ -18,19 +18,19 @@ export const AVAILABLE_MODELS = [
     description: 'Latest GPT-4 model with improved performance'
   },
   {
-    id: 'anthropic/claude-3-haiku',
+    id: 'anthropic/claude-haiku-4.5',
     name: 'Claude 3 Haiku',
     provider: 'Anthropic',
     description: 'Fast and efficient for everyday tasks'
   },
   {
-    id: 'anthropic/claude-3-sonnet',
+    id: 'anthropic/claude-sonnet-4.5',
     name: 'Claude 3 Sonnet',
     provider: 'Anthropic',
     description: 'Balanced performance for most use cases'
   },
   {
-    id: 'anthropic/claude-3-opus-20240229',
+    id: 'anthropic/claude-opus-4.5',
     name: 'Claude 3 Opus',
     provider: 'Anthropic',
     description: 'Most capable for complex tasks'

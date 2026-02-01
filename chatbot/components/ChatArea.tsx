@@ -47,8 +47,8 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
     e.preventDefault();
     if (!input.trim() || loading) return;
 
-    // Check credits before sending
-    if (credits <= 0) {
+    // Check credits before sending (only for authenticated users)
+    if (userId && credits <= 0) {
       setError("No credits available. Please purchase more credits to continue chatting.");
       return;
     }
@@ -138,8 +138,8 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
 
   return (
     <div className="flex-1 flex flex-col bg-zinc-900 h-screen">
-      {/* No Credits Warning */}
-      {credits <= 0 && (
+      {/* No Credits Warning - only for authenticated users */}
+      {userId && credits <= 0 && (
         <div className="bg-linear-to-r from-red-900/80 to-orange-900/80 border-b border-red-500/30 p-4">
           <div className="flex items-center justify-center gap-3">
            
@@ -164,14 +164,19 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-gray-500">
               <h1 className="text-5xl font-semibold mb-2">Ask Me Anything</h1>
-              {credits <= 0 && (
+              {userId && credits <= 0 && (
                 <p className="text-lg text-red-400 mt-4">
                    You need credits to start chatting
                 </p>
               )}
-              {credits > 0 && (
+              {userId && credits > 0 && (
                 <p className="text-lg text-green-400 mt-4">
                    You have {credits} credits available
+                </p>
+              )}
+              {!userId && (
+                <p className="text-lg text-blue-400 mt-4">
+                   Start chatting anonymously
                 </p>
               )}
             </div>
@@ -195,27 +200,27 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
         <div className="flex gap-3 max-w-4xl mx-auto mb-3">
           <ContextIndicator messageCount={messages.length} maxContext={10} />
         </div>
-        <div className="flex gap-3 max-w-4xl mx-auto">
+        <div className="flex gap-3 max-w-4xl mx-auto items-center">
           <ModelSelector
             selectedModel={selectedModel}
             onModelChange={setSelectedModel}
-            disabled={loading || credits <= 0}
+            disabled={loading || Boolean(userId && credits <= 0)}
           />
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={credits <= 0 ? "Purchase credits to chat..." : "Send a message..."}
-            disabled={loading || credits <= 0}
-            className={`flex-1 px-4 py-3 bg-gray-800 text-white rounded-lg border focus:outline-none focus:border-blue-500 ${credits <= 0
+            placeholder={userId && credits <= 0 ? "Purchase credits to chat..." : "Send a message..."}
+            disabled={loading || Boolean(userId && credits <= 0)}
+            className={`chat-input flex-1 px-4 py-3 bg-gray-800 text-white rounded-lg border focus:outline-none focus:border-blue-500 h-11 ${(userId && credits <= 0)
                 ? "border-red-500/50 cursor-not-allowed opacity-50"
                 : "border-gray-600"
               }`}
           />
           <button
             type="submit"
-            disabled={loading || !input.trim() || credits <= 0}
-            className={`px-6 py-3 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed ${credits <= 0
+            disabled={loading || !input.trim() || Boolean(userId && credits <= 0)}
+            className={`px-6 py-3 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed h-11 ${(userId && credits <= 0)
                 ? "bg-gray-600"
                 : "bg-blue-600 hover:bg-blue-700"
               }`}

@@ -23,10 +23,14 @@ export interface SidebarItem {
 }
 
 export const chatService = {
-  async getSidebarChats(): Promise<SidebarItem[]> {
-    const res = await fetch(`${API_BASE}/sidebar`);
+  async getSidebarChats(userId?: string): Promise<SidebarItem[]> {
+    const res = await fetch(`${API_BASE}/sidebar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId || null }),
+    });
     const data = await res.json();
-    return data.data;
+    return data.data || [];
   },
 
   async getChatById(id: string): Promise<ChatThread> {

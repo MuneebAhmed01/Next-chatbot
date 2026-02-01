@@ -25,6 +25,39 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Fix input text color to black in all forms, except chat inputs */
+input[type="text"]:not(.chat-input),
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+textarea {
+  color: #000000 !important;
+}
+
+/* Chat inputs should have white text */
+.chat-input {
+  color: #ffffff !important;
+}
+
+/* Fix placeholder text color */
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Chat input placeholder should be lighter */
+.chat-input::placeholder {
+  color: #d1d5db !important;
+}
+
+/* Ensure chat input placeholder is visible in all themes */
+@media (prefers-color-scheme: dark) {
+  .chat-input::placeholder {
+    color: #d1d5db !important;
+  }
+}
+
 .prism-dark-bg {
   background: #23272e !important;
 }
@@ -35,5 +68,15 @@ body {
   .prism-dark-bg code {
     background: #23272e !important;
     color: #ededed !important;
+  }
+
+  /* Keep input text black even in dark mode, except chat inputs */
+  input[type="text"]:not(.chat-input),
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  textarea {
+    color: #000000 !important;
   }
 }

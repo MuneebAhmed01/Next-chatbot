@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
-export function validateApiRequest<T>(schema: z.ZodSchema<T>, request: NextRequest): {
+export async function validateApiRequest<T>(schema: z.ZodSchema<T>, request: NextRequest): {
   success: boolean;
   data?: T;
   error?: NextResponse;
 } {
   try {
-    const body = request.json();
+    const body = await request.json();
     const result = schema.parse(body);
     return { success: true, data: result };
   } catch (error) {
