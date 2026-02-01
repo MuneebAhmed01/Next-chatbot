@@ -197,9 +197,6 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
 
       {/* Input */}
       <form onSubmit={handleSend} className="p-4 border-t border-gray-700">
-        <div className="flex gap-3 max-w-4xl mx-auto mb-3">
-          <ContextIndicator messageCount={messages.length} maxContext={10} />
-        </div>
         <div className="flex gap-3 max-w-4xl mx-auto items-center">
           <ModelSelector
             selectedModel={selectedModel}
