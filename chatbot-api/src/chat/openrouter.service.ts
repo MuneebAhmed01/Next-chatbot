@@ -8,7 +8,7 @@ export class OpenRouterService {
   private readonly baseUrl = 'https://openrouter.ai/api/v1';
 
   constructor(private configService: ConfigService) {
-    this.apiKey = this.configService.get<string>('OPENROUTER_API_KEY') || '';
+    this.apiKey = this.configService.get('OPENROUTER_API_KEY') || '';
     
     if (!this.apiKey) {
       this.logger.warn('OPENROUTER_API_KEY is not set');

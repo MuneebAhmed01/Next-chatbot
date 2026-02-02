@@ -21,8 +21,8 @@ export class EmailService {
         pass: process.env.EMAIL_PASS,
       },
     
-      debug: true,
-      logger: true,
+      debug: false,
+      logger: false,
     });
 
    
