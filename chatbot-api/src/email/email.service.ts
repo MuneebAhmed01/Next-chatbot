@@ -8,7 +8,6 @@ export class EmailService {
   constructor() {
    
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.warn('⚠️  Email credentials not configured. Using test mode.');
       console.log('Please set EMAIL_USER and EMAIL_PASS in your .env file');
       return;
     }
@@ -28,9 +27,9 @@ export class EmailService {
    
     this.transporter.verify((error, success) => {
       if (error) {
-        console.error('❌ Email transporter configuration error:', error);
+        console.error('Email transporter configuration error:', error);
       } else {
-        console.log('✅ Email transporter is ready to send emails');
+        console.log('Email transporter working');
       }
     });
   }
@@ -72,7 +71,7 @@ export class EmailService {
       console.log(`✅ OTP email sent to ${email}`);
       console.log('Message ID:', result.messageId);
     } catch (error) {
-      console.error('❌ Failed to send OTP email:', error);
+      console.error('Failed to send OTP email:', error);
    
       throw new Error('Failed to send OTP email');
     }
