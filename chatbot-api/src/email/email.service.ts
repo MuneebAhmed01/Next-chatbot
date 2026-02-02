@@ -80,7 +80,7 @@ export class EmailService {
   async sendPasswordResetOTP(email: string, otp: string): Promise<void> {
 
     if (!this.transporter) {
-      console.log(`📧 EMAIL NOT CONFIGURED - Password reset OTP for ${email}: ${otp}`);
+      console.log(`EMAIL NOT CONFIGURED - Password reset OTP for ${email}: ${otp}`);
       return;
     }
 
