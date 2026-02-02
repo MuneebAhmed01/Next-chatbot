@@ -11,7 +11,7 @@ interface OTPStore {
   [key: string]: OTPData;
 }
 
-// Use a file to persist OTPs across serverless function invocations
+
 const OTP_FILE = path.join(process.cwd(), '.otp-store.json');
 
 function readStore(): OTPStore {
@@ -34,12 +34,10 @@ function writeStore(store: OTPStore): void {
   }
 }
 
-// Helper to create consistent key
 function getKey(email: string, purpose: 'reset' | 'register'): string {
   return `${email.toLowerCase().trim()}:${purpose}`;
 }
 
-// Clean expired OTPs
 function cleanExpired(store: OTPStore): OTPStore {
   const now = Date.now();
   const cleaned: OTPStore = {};
@@ -51,7 +49,6 @@ function cleanExpired(store: OTPStore): OTPStore {
   return cleaned;
 }
 
-// Save OTP for 10 min
 export function saveOTP(email: string, otp: string, purpose: 'reset' | 'register') {
   const key = getKey(email, purpose);
   const normalizedOTP = String(otp).trim();
@@ -63,7 +60,7 @@ export function saveOTP(email: string, otp: string, purpose: 'reset' | 'register
   const store = cleanExpired(readStore());
   store[key] = {
     otp: normalizedOTP,
-    expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+    expiresAt: Date.now() + 10 * 60 * 1000, 
     purpose,
   };
   writeStore(store);
@@ -71,7 +68,7 @@ export function saveOTP(email: string, otp: string, purpose: 'reset' | 'register
   console.log('OTP saved successfully');
 }
 
-// Verify OTP is correct or not
+
 export function verifyOTP(email: string, otp: string, purpose: 'reset' | 'register'): boolean {
   const key = getKey(email, purpose);
   const normalizedOTP = String(otp).trim();
@@ -111,7 +108,7 @@ export function verifyOTP(email: string, otp: string, purpose: 'reset' | 'regist
     return false;
   }
 
-  // OTP is valid - delete it so it can't be reused
+ 
   delete store[key];
   writeStore(store);
   console.log('OTP verified and deleted');

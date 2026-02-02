@@ -110,7 +110,7 @@ export default function LoginPage() {
           setResetOtp('');
           setNewPassword('');
           setResetSuccess('');
-          setPassword(''); // Clear old password
+          setPassword(''); 
         }, 2000);
       } else {
         setResetError(data.error || 'Failed to reset password');

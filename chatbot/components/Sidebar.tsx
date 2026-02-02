@@ -213,7 +213,7 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
                 </button>
               </div>
               
-              {/* Delete Confirmation Dialog */}
+              {/* Delete chat */}
               {deleteConfirm === chat.id && (
                 <div className="px-4 py-2 bg-gray-800 border-l-4 border-red-500">
                   <p className="text-white text-sm mb-2">Delete this chat?</p>
@@ -240,7 +240,7 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
 
       {/* Bottom buttons */}
       <div className="p-3 space-y-2">
-        {/* My Profile Button */}
+        {/* profile Button */}
         {userEmail ? (
           <button
             onClick={() => onShowProfile?.()}
@@ -267,7 +267,7 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
           </button>
         )}
 
-        {/* Logout */}
+        {/* logout */}
         <button
           onClick={handleLogout}
           className="w-full text-left px-3 py-2 text-sm text-white bg-gray-800 hover:bg-gray-700 rounded-xl"

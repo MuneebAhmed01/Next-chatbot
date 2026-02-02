@@ -222,7 +222,7 @@ export default function RegisterPage() {
                   }}
                   className="text-sm text-gray-600 hover:text-gray-500"
                 >
-                  -- Change email
+                  ←- Change email
                 </button>
               </div>
             </div>

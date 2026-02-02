@@ -28,7 +28,7 @@ const Message = ({ message }: MessageProps) => {
     Prism.highlightAll();
   }, [message.content]);
 
-  // Copy full response
+ 
   const handleCopyResponse = () => {
     if (messageRef.current) {
       const text = messageRef.current.innerText || "";
@@ -50,7 +50,7 @@ const Message = ({ message }: MessageProps) => {
         </div>
       ) : (
         <div className="inline-flex flex-col gap-2 p-2 px-4 max-w-2xl bg-primary/20 dark:bg-[#57317C]/30 border border-[#80609F]/30 rounded-md my-4 relative group">
-          {/* Copy response button */}
+       
           <button
             onClick={handleCopyResponse}
             className="absolute top-2 right-2 p-2 bg-gray-700 text-white rounded hover:bg-gray-600 z-10 opacity-0 group-hover:opacity-100 transition"
@@ -81,7 +81,7 @@ const Message = ({ message }: MessageProps) => {
                             <button
                               onClick={() => navigator.clipboard.writeText(codeString)}
                               className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition bg-gray-700 text-white p-2 rounded hover:bg-gray-600"
-                              title="Copy code"
+                             
                               type="button"
                             >
                               <img src="/copy.svg" alt="Copy" className="w-4 h-4" />

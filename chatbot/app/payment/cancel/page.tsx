@@ -19,7 +19,7 @@ export default function PaymentCancelPage() {
                 <div className="space-y-3">
                     <button
                         onClick={() => router.push('/dashboard/chat')}
-                        className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg"
+                        className="w-full py-3 px-6 bg-linear-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg"
                     >
                         Try Again
                     </button>

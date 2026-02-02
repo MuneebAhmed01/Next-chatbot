@@ -76,7 +76,7 @@ export const chatService = {
     return data.data;
   },
 
-  // New credit-related methods
+ 
   async getCredits(userId: string): Promise<{ credits: number }> {
     console.log(`chatService.getCredits: Fetching credits for userId: ${userId}`);
     const res = await fetch(`${PAYMENT_API}/credits/${userId}`);

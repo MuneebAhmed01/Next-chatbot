@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react";
 import { chatService, ChatMessage } from "../services/chatService";
 import Message from "./Message";
 import ModelSelector from "./ModelSelector";
-import ContextIndicator from "./ContextIndicator";
 import { DEFAULT_MODEL, type ModelId } from "../lib/models";
 
 type ChatAreaProps = {
@@ -15,12 +14,12 @@ type ChatAreaProps = {
 };
 
 export default function ChatArea({ chatId, onChatCreated, userId, credits, onCreditsChange }: ChatAreaProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]); //storing chat in form on array
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<ModelId>(DEFAULT_MODEL);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<string | null>(null);//either error(network/error processing this message) or null
+  const [selectedModel, setSelectedModel] = useState<ModelId>(DEFAULT_MODEL); //choose selected model else default
+  const messagesEndRef = useRef<HTMLDivElement>(null); // to scroll to bottom of chat everytime i refresh
 
   useEffect(() => {
     if (chatId) {
@@ -47,7 +46,7 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
     e.preventDefault();
     if (!input.trim() || loading) return;
 
-    // Check credits before sending (only for authenticated users)
+  // No credit
     if (userId && credits <= 0) {
       setError("No credits available. Please purchase more credits to continue chatting.");
       return;
@@ -67,12 +66,11 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
     setMessages((prev) => [...prev, tempUserMsg]);
 
     try {
-      console.log('ChatArea.handleSend: Calling chatService.sendMessage');
-      const result = await chatService.sendMessage(chatId || null, userMessage, userId, selectedModel);
-      console.log('ChatArea.handleSend: Received result', result);
 
+      const result = await chatService.sendMessage(chatId || null, userMessage, userId, selectedModel);
+  
       if (result && result.chat && Array.isArray(result.chat.messages)) {
-        console.log('ChatArea.handleSend: Setting messages', result.chat.messages);
+   
         setMessages(result.chat.messages);
 
        
@@ -92,7 +90,7 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
           }
         }
       } else {
-        console.error("Api error", result);
+        console.error("api error", result);
         
         if (result && result.response) {
          
@@ -138,7 +136,7 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
 
   return (
     <div className="flex-1 flex flex-col bg-zinc-900 h-screen">
-      {/* No Credits Warning - only for authenticated users */}
+    {/* //Red warning on top on 0 credit */}
       {userId && credits <= 0 && (
         <div className="bg-linear-to-r from-red-900/80 to-orange-900/80 border-b border-red-500/30 p-4">
           <div className="flex items-center justify-center gap-3">
@@ -195,7 +193,7 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+    {/* input */}
       <form onSubmit={handleSend} className="p-4 border-t border-gray-700">
         <div className="flex gap-3 max-w-4xl mx-auto items-center">
           <ModelSelector

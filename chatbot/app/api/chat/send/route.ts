@@ -11,8 +11,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now, return a simple response
-    // In a real app, this would integrate with AI service
+   
     const responseMessage = {
       id: Date.now().toString(),
       role: 'assistant' as const,
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
           messages: [userMessage, responseMessage]
         },
         response: responseMessage,
-        credits: 1 // Deduct 1 credit
+        credits: 1 
       }
     });
   } catch (error) {
