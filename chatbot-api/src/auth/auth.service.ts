@@ -16,7 +16,7 @@ export class AuthService {
     try {
       const normalizedEmail = email?.toLowerCase().trim();
 
-      // Check if user already exists and is verified
+    
       const existingVerifiedUser = await this.userModel.findOne({ 
         email: normalizedEmail, 
         isVerified: true 
@@ -25,7 +25,7 @@ export class AuthService {
         throw new BadRequestException('User already exists');
       }
 
-      // Check if there's a pending registration
+     
       const existingPendingUser = await this.userModel.findOne({ 
         email: normalizedEmail, 
         isVerified: false 
@@ -34,7 +34,7 @@ export class AuthService {
       let hashedPassword;
 
       if (existingPendingUser) {
-        // Update existing pending user
+       
         hashedPassword = await bcrypt.hash(password, 10);
         
         await this.userModel.findByIdAndUpdate(existingPendingUser._id, {
@@ -42,7 +42,7 @@ export class AuthService {
           password: hashedPassword,
         });
       } else {
-        // Create new pending user
+       
         hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = new this.userModel({
@@ -57,7 +57,6 @@ export class AuthService {
         await newUser.save();
       }
 
-      // Send OTP using OTP service
       return this.otpService.sendSignupOTP(normalizedEmail, name);
     } catch (error) {
       throw error;
@@ -72,7 +71,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Check if user is verified
+   
     if (user.isVerified === false) {
       throw new UnauthorizedException('Account not verified. Please check your email and verify your account.');
     }
@@ -98,11 +97,9 @@ export class AuthService {
 
   async resetPassword(email: string, otp: string, newPassword: string) {
     const user = await this.otpService.verifyPasswordResetOTP(email, otp);
-    
-    // Hash the new password
+ 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password and clear OTP fields
     await this.userModel.findByIdAndUpdate(user._id, {
       password: hashedPassword,
       $unset: {

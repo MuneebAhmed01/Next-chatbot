@@ -6,27 +6,26 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
-    // Check if email credentials are configured
+   
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.warn('⚠️  Email credentials not configured. Using test mode.');
       console.log('Please set EMAIL_USER and EMAIL_PASS in your .env file');
       return;
     }
 
-    // For development, we'll use Gmail
-    // In production, you should use real SMTP credentials
+   
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      // Add debugging options
+    
       debug: true,
       logger: true,
     });
 
-    // Verify transporter configuration
+   
     this.transporter.verify((error, success) => {
       if (error) {
         console.error('❌ Email transporter configuration error:', error);
@@ -37,7 +36,7 @@ export class EmailService {
   }
 
   async sendOTP(email: string, otp: string): Promise<void> {
-    // If no transporter configured, just log the OTP
+   
     if (!this.transporter) {
       console.log(`📧 EMAIL NOT CONFIGURED - OTP for ${email}: ${otp}`);
       return;
@@ -74,24 +73,13 @@ export class EmailService {
       console.log('Message ID:', result.messageId);
     } catch (error) {
       console.error('❌ Failed to send OTP email:', error);
-      
-      // Provide specific error guidance
-      if (error.code === 'EAUTH') {
-        console.error('🔧 Authentication failed. Please check:');
-        console.error('1. EMAIL_USER is correct');
-        console.error('2. EMAIL_PASS is an App Password (not regular password)');
-        console.error('3. 2-factor authentication is enabled on your Google account');
-        console.error('4. App Password is generated at: https://myaccount.google.com/apppasswords');
-      } else if (error.code === 'ECONNECTION') {
-        console.error('🔧 Connection failed. Please check your internet connection');
-      }
-      
+   
       throw new Error('Failed to send OTP email');
     }
   }
 
   async sendPasswordResetOTP(email: string, otp: string): Promise<void> {
-    // If no transporter configured, just log the OTP
+
     if (!this.transporter) {
       console.log(`📧 EMAIL NOT CONFIGURED - Password reset OTP for ${email}: ${otp}`);
       return;
@@ -129,7 +117,6 @@ export class EmailService {
     } catch (error) {
       console.error('❌ Failed to send password reset OTP email:', error);
       
-      // Provide specific error guidance
       if (error.code === 'EAUTH') {
         console.error('🔧 Authentication failed. Please check your email configuration');
       } else if (error.code === 'ECONNECTION') {
@@ -141,7 +128,7 @@ export class EmailService {
   }
 
   async sendPasswordResetEmail(email: string, resetToken: string): Promise<void> {
-    // If no transporter configured, just log the reset token
+ 
     if (!this.transporter) {
       console.log(`📧 EMAIL NOT CONFIGURED - Reset token for ${email}: ${resetToken}`);
       return;
@@ -181,8 +168,7 @@ export class EmailService {
       console.log('Message ID:', result.messageId);
     } catch (error) {
       console.error('❌ Failed to send password reset email:', error);
-      
-      // Provide specific error guidance
+     
       if (error.code === 'EAUTH') {
         console.error('🔧 Authentication failed. Please check your email configuration');
       } else if (error.code === 'ECONNECTION') {
