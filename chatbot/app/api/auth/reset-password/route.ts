@@ -18,10 +18,10 @@ export async function POST(request: NextRequest) {
 
     // Call backend to reset password
     try {
-      console.log('Calling backend:', 'http://localhost:4000/user/reset-password');
+      console.log('Calling backend:', 'http://localhost:4000/auth/reset-password');
       console.log('Sending:', { email, otp, newPassword });
       
-      const backendRes = await fetch('http://localhost:4000/user/reset-password', {
+      const backendRes = await fetch('http://localhost:4000/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, newPassword }),

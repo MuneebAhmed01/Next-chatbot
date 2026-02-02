@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     // Call backend to verify OTP and finalize signup
     try {
-      const backendRes = await fetch('http://localhost:4000/user/verify-otp', {
+      const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp }),
