@@ -27,20 +27,6 @@ function BackIcon() {
   );
 }
 
-function EditIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
-      <path
-        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 
 export default function Profile({
   userId,
@@ -52,7 +38,19 @@ export default function Profile({
   onNameUpdate,
 }: ProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(userName || "");
+  const [name, setName] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedName = localStorage.getItem(`userName_${userId}`);
+      return savedName || userName || "";
+    }
+    return userName || "";
+  });
+  const [profileImage, setProfileImage] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(`profileImage_${userId}`) || null;
+    }
+    return null;
+  });
 
   const handleSaveName = async () => {
     if (!userId || !name.trim()) {
@@ -63,6 +61,9 @@ export default function Profile({
     try {
       await chatService.updateUserName(userId, name.trim());
       onNameUpdate?.(name.trim());
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`userName_${userId}`, name.trim());
+      }
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update name:", error);
@@ -70,7 +71,26 @@ export default function Profile({
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageData = reader.result as string;
+        setProfileImage(imageData);
+        if (typeof window !== 'undefined' && userId) {
+          localStorage.setItem(`profileImage_${userId}`, imageData);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const getProfilePicture = () => {
+    if (profileImage) {
+      return profileImage;
+    }
+    
     const display = name || userEmail || "User";
     const isGmail = userEmail?.includes("@gmail.com");
 
@@ -108,15 +128,24 @@ export default function Profile({
                 <img
                   src={getProfilePicture()}
                   alt="Profile"
-                  className="w-32 h-32 rounded-full border-4 border-blue-500 shadow-lg"
+                  className="w-32 h-32 rounded-full border-4 border-purple-500 shadow-lg object-cover"
                 />
 
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="profile-image-upload"
+                />
+                
                 <button
-                  className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
+                  onClick={() => document.getElementById('profile-image-upload')?.click()}
+                  className="absolute bottom-0 right-0 bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600 transition-colors"
                   type="button"
                   aria-label="Change photo"
                 >
-                 
+                  <img src="/white-pencil.svg" alt="Edit" className="w-3 h-3" />
                 </button>
               </div>
 
@@ -137,7 +166,12 @@ export default function Profile({
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-4 py-2 bg-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                      style={{ 
+                        color: 'white',
+                        WebkitTextFillColor: 'white',
+                        caretColor: 'white'
+                      }}
                     />
 
                     <button
@@ -146,17 +180,6 @@ export default function Profile({
                       type="button"
                     >
                       Save
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setIsEditing(false);
-                        setName(userName || "");
-                      }}
-                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                      type="button"
-                    >
-                      Cancel
                     </button>
                   </div>
                 ) : (
@@ -169,7 +192,7 @@ export default function Profile({
                       type="button"
                       aria-label="Edit name"
                     >
-                      <EditIcon />
+                      <img src="/blue-pencil.svg" alt="Edit" className="w-4 h-4" />
                     </button>
                   </div>
                 )}
