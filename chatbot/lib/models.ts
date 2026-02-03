@@ -1,54 +1,50 @@
 export const AVAILABLE_MODELS = [
   {
-    id: 'openai/gpt-3.5-turbo',
-    name: 'GPT-3.5 Turbo',
-    provider: 'OpenAI',
-    description: 'Fast and efficient for most tasks'
+    id: 'stepfun/step-3.5-flash:free',
+    name: 'Step 3.5 Flash',
+    provider: 'StepFun',
+    description: 'Fast and efficient free model'
   },
   {
-    id: 'openai/gpt-4',
-    name: 'GPT-4',
-    provider: 'OpenAI',
-    description: 'More capable for complex tasks'
+    id: 'arcee-ai/trinity-large-preview:free',
+    name: 'Trinity Large',
+    provider: 'Arcee AI',
+    description: 'Large preview model for complex tasks'
   },
   {
-    id: 'openai/gpt-4-turbo',
-    name: 'GPT-4 Turbo',
-    provider: 'OpenAI',
-    description: 'Latest GPT-4 model with improved performance'
+    id: 'upstage/solar-pro-3:free',
+    name: 'Solar Pro 3',
+    provider: 'Upstage',
+    description: 'Professional grade solar model'
+  },
+
+  {
+    id: 'allenai/molmo-2-8b:free',
+    name: 'Molmo 2 8B',
+    provider: 'AllenAI',
+    description: 'Multimodal open language model'
   },
   {
-    id: 'anthropic/claude-haiku-4.5',
-    name: 'Claude 3 Haiku',
-    provider: 'Anthropic',
-    description: 'Fast and efficient for everyday tasks'
+    id: 'tngtech/tng-r1t-chimera:free',
+    name: 'DeepSeek R1',
+    provider: 'DeepSeek',
+    description: 'Hybrid reasoning model'
   },
   {
-    id: 'anthropic/claude-sonnet-4.5',
-    name: 'Claude 3 Sonnet',
-    provider: 'Anthropic',
-    description: 'Balanced performance for most use cases'
+    id: 'tngtech/deepseek-r1t-chimera:free',
+    name: 'DeepSeek R1T Chimera',
+    provider: 'TNG Tech',
+    description: 'Advanced hybrid reasoning model'
   },
+
   {
-    id: 'anthropic/claude-opus-4.5',
-    name: 'Claude 3 Opus',
-    provider: 'Anthropic',
-    description: 'Most capable for complex tasks'
-  },
-  {
-    id: 'meta-llama/llama-3-70b-instruct',
-    name: 'Llama 3 70B',
-    provider: 'Meta',
-    description: 'Open source large language model'
-  },
-  {
-    id: 'mistralai/mistral-7b-instruct',
-    name: 'Mistral 7B',
-    provider: 'Mistral',
-    description: 'Efficient open source model'
+    id: 'nousresearch/hermes-3-llama-3.1-405b',
+    name: 'Hermes 3 405B',
+    provider: 'Nous Research',
+    description: 'Large 405B parameter model'
   }
 ];
 
-export const DEFAULT_MODEL = 'openai/gpt-3.5-turbo';
+export const DEFAULT_MODEL = 'stepfun/step-3.5-flash:free';
 
 export type ModelId = typeof AVAILABLE_MODELS[number]['id'];
