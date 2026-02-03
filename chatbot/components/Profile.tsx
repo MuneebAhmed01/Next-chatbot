@@ -66,27 +66,27 @@ export default function Profile({
   };
 
   return (
-    <div className="flex h-full">
-     
-      <div className="w-[17%] min-w-[17%] bg-black opacity-50" />
+    <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50" onClick={onBack}>
+      <div className="bg-gray-900 rounded-2xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={onBack}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          type="button"
+        >
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24">
+            <path
+              d="M6 18L18 6M6 6l12 12"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
 
-     
-      <div className="flex-1 bg-gray-900 p-8 overflow-y-auto">
-      
-        <div className="mb-8">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
-            type="button"
-          >
-            <BackIcon />
-            <span>Back to Chat</span>
-          </button>
+        <h1 className="text-3xl font-bold text-white mb-8">My Profile</h1>
 
-          <h1 className="text-3xl font-bold text-white">My Profile</h1>
-        </div>
-
-        <div className="bg-gray-800 rounded-2xl p-8 max-w-4xl mx-auto">
+        <div className="bg-gray-800 rounded-2xl p-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
        
             <div className="flex flex-col items-center">
@@ -171,13 +171,6 @@ export default function Profile({
                   <span className="text-green-400 text-sm">✓ Verified</span>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  User ID
-                </label>
-                <p className="text-gray-400 text-sm font-mono">{userId}</p>
-              </div>
             </div>
           </div>
 
@@ -208,7 +201,6 @@ export default function Profile({
             </div>
           </div>
         </div>
-     
       </div>
     </div>
   );
