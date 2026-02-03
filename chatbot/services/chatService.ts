@@ -62,9 +62,11 @@ export const chatService = {
     return data.data;
   },
 
-  async deleteChat(id: string): Promise<{ deleted: boolean }> {
+  async deleteChat(id: string, userId?: string): Promise<{ deleted: boolean }> {
     const res = await fetch(`${API_BASE}/${id}`, {
       method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
     });
     const data = await res.json();
     return data.data;
@@ -100,5 +102,15 @@ export const chatService = {
     const data = await res.json();
 
     return { url: data.url };
+  },
+
+  async updateUserName(userId: string, name: string): Promise<{ success: boolean }> {
+    const res = await fetch(`http://localhost:4000/user/update-profile`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, name }),
+    });
+    const data = await res.json();
+    return data;
   },
 };

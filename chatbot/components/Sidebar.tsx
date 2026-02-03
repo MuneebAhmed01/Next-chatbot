@@ -126,7 +126,7 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
 
   async function confirmDeleteChat(id: string) {
     try {
-      await chatService.deleteChat(id);
+      await chatService.deleteChat(id, userId);
       await loadChats();
       if (activeChat === id) {
         onSelectChat(null);

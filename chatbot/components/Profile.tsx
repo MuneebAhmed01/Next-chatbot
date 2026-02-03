@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { chatService } from "../services/chatService";
 
 type ProfileProps = {
   userId?: string;
@@ -9,6 +10,7 @@ type ProfileProps = {
   credits: number;
   onBuyCredits: () => void;
   onBack: () => void;
+  onNameUpdate?: (newName: string) => void;
 };
 
 function BackIcon() {
@@ -47,13 +49,25 @@ export default function Profile({
   credits,
   onBuyCredits,
   onBack,
+  onNameUpdate,
 }: ProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(userName || "");
 
   const handleSaveName = async () => {
-   
-    setIsEditing(false);
+    if (!userId || !name.trim()) {
+      setIsEditing(false);
+      return;
+    }
+
+    try {
+      await chatService.updateUserName(userId, name.trim());
+      onNameUpdate?.(name.trim());
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update name:", error);
+      alert("Failed to update name. Please try again.");
+    }
   };
 
   const getProfilePicture = () => {

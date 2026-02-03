@@ -81,6 +81,10 @@ export default function Home() {
     checkAuth();
   }, [router]);
 
+  const handleNameUpdate = (newName: string) => {
+    setUser((prev: any) => prev ? { ...prev, name: newName } : null);
+  };
+
   const handleBuyCredits = () => {
     // This will be passed to Profile component
     if (!user?.id || !user?.email) {
@@ -119,6 +123,7 @@ export default function Home() {
         credits={credits}
         onBuyCredits={handleBuyCredits}
         onBack={() => setShowProfile(false)}
+        onNameUpdate={handleNameUpdate}
       />
     );
   }
