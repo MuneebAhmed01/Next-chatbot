@@ -113,7 +113,6 @@ export default function Home() {
     );
   }
 
-  // Show Profile view
   if (showProfile) {
     return (
       <Profile
@@ -129,7 +128,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen ">
       <Sidebar 
         onSelectChat={setActiveChat} 
         activeChat={activeChat}

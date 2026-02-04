@@ -165,7 +165,7 @@ export default function RegisterPage() {
             >
               {loading ? 'Sending OTP...' : 'Send OTP'}
             </button>
-            <div className="text-center text-sm">
+            <div className="text-center text-sm text-gray-900">
               Already have an account?{' '}
               <a href="/login" className="text-blue-600 hover:text-blue-500">
                 Sign in
@@ -220,7 +220,7 @@ export default function RegisterPage() {
                     setOtp('');
                     setError('');
                   }}
-                  className="text-sm text-gray-600 hover:text-gray-500"
+                  className="text-sm text-gray-900 hover:text-gray-700"
                 >
                   ←- Change email
                 </button>

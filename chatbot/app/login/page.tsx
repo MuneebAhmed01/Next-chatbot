@@ -183,7 +183,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleForgotPassword}
                 disabled={resetLoading}
-                className="text-sm text-gray-600 hover:text-gray-500 disabled:opacity-50"
+                className="text-sm text-gray-900 hover:text-gray-700 disabled:opacity-50"
               >
                 Resend OTP
               </button>
@@ -275,7 +275,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="text-center text-sm">
+        <div className="text-center text-sm text-gray-900">
           Don't have an account?{' '}
           <a href="/register" className="text-blue-600 hover:text-blue-500">
             Sign up
@@ -287,13 +287,13 @@ export default function LoginPage() {
             <div className="w-full border-t border-gray-300"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            <span className="px-2 bg-white text-gray-900">Or continue with</span>
           </div>
         </div>
 
         <button
           onClick={handleGoogleLogin}
-          className="w-full py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-3 transition"
+          className="w-full py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-3 transition text-gray-900"
         >
         
           <img className="w-5 h-5" src='./google.svg'/>
