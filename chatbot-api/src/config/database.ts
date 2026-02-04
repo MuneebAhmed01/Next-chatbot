@@ -14,7 +14,7 @@ if (!cached) {
 
 export async function connectDB() {
   if (!MONGODB_URI) {
-    throw new Error('MongoDB connection not configured. Please set MONGODB_URI environment variable.');
+    throw new Error('MongoDB connection not configured/missing in env');
   }
 
   if (cached.conn) {

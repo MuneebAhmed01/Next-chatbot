@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call backend to send password reset OTP
+    // Calling backend to send password reset OTP
     try {
       const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/forgot-password`, {
         method: 'POST',
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: 'Password reset instructions sent to your email',
-          resetToken: data.resetToken // For development, remove in production
+          resetToken: data.resetToken 
         });
       } else {
         return NextResponse.json(

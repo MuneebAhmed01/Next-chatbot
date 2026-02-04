@@ -53,7 +53,6 @@ export async function GET(request: NextRequest) {
 
     const result = await googleAuthResponse.json();
 
-    // Create response with cookies
     const response = NextResponse.redirect(new URL('/', request.url));
 
     response.cookies.set('auth', 'true', {

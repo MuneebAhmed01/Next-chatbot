@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { chatService } from "../services/chatService";
 
 type ProfileProps = {
@@ -13,19 +13,7 @@ type ProfileProps = {
   onNameUpdate?: (newName: string) => void;
 };
 
-function BackIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
-      <path
-        d="M15 19l-7-7 7-7"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+
 
 
 export default function Profile({
@@ -51,6 +39,21 @@ export default function Profile({
     }
     return null;
   });
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Trigger animation on mount
+    requestAnimationFrame(() => {
+      setIsVisible(true);
+    });
+  }, []);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onBack();
+    }, 200);
+  };
 
   const handleSaveName = async () => {
     if (!userId || !name.trim()) {
@@ -100,14 +103,24 @@ export default function Profile({
   };
 
   return (
-   <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-50" onClick={onBack}>
-      <div className="bg-gray-900 rounded-2xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+   <div 
+     className={`fixed inset-0 flex items-center justify-center z-50 transition-all duration-200 ease-out ${
+       isVisible ? 'bg-black/40 backdrop-blur-sm' : 'bg-transparent'
+     }`} 
+     onClick={handleClose}
+   >
+      <div 
+        className={`bg-gray-900 rounded-2xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto relative shadow-2xl border border-gray-700/50 transition-all duration-200 ease-out ${
+          isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'
+        }`} 
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
-          onClick={onBack}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full p-2 transition-all duration-200"
           type="button"
         >
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
             <path
               d="M6 18L18 6M6 6l12 12"
               stroke="currentColor"
@@ -120,15 +133,16 @@ export default function Profile({
 
         <h1 className="text-3xl font-bold text-white mb-8">My Profile</h1>
 
-        <div className="bg-gray-800 rounded-2xl p-8">
+        <div className="bg-gray-800/80 rounded-2xl p-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
        
             <div className="flex flex-col items-center">
-              <div className="relative">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-linear-to-r from-purple-600 to-blue-500 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-300"></div>
                 <img
                   src={getProfilePicture()}
                   alt="Profile"
-                  className="w-32 h-32 rounded-full border-4 border-purple-500 shadow-lg object-cover"
+                  className="relative w-32 h-32 rounded-full border-4 border-gray-900 shadow-xl object-cover"
                 />
 
                 <input
@@ -141,11 +155,13 @@ export default function Profile({
                 
                 <button
                   onClick={() => document.getElementById('profile-image-upload')?.click()}
-                  className="absolute bottom-0 right-0 bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600 transition-colors"
+                  className="absolute bottom-1 right-1 bg-linear-to-r from-purple-500 to-blue-500 text-white p-2.5 rounded-full hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 hover:scale-110"
                   type="button"
                   aria-label="Change photo"
                 >
-                  <img src="/white-pencil.svg" alt="Edit" className="w-3 h-3" />
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
                 </button>
               </div>
 

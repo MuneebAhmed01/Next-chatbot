@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, otp, name, password } = await request.json(); // password might be passed but verify endpoint only needs email/otp usually if user is already temp saved
+    const { email, otp, name, password } = await request.json(); 
 
     if (!email || !otp) {
       return NextResponse.json(
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
           httpOnly: false, // Allow client access if needed
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
-          maxAge: 60 * 60 * 24 * 7, // 1 week
+          maxAge: 60 * 60 * 24 * 7, 
           path: '/',
         });
 

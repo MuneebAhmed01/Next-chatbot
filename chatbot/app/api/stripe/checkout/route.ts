@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Call backend API to create checkout session
+     
         const checkoutResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/payment/create-checkout-session`, {
             method: 'POST',
             headers: {

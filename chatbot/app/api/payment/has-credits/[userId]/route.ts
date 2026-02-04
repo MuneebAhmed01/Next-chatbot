@@ -6,9 +6,6 @@ export async function GET(
 ) {
   try {
     const { userId } = params;
-
-    // For now, return false (no credits)
-    // In a real app, this would check database
     return NextResponse.json({
       hasCredits: false
     });

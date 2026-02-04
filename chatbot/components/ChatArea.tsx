@@ -14,12 +14,12 @@ type ChatAreaProps = {
 };
 
 export default function ChatArea({ chatId, onChatCreated, userId, credits, onCreditsChange }: ChatAreaProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]); //storing chat in form on array
+  const [messages, setMessages] = useState<ChatMessage[]>([]); 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);//either error(network/error processing this message) or null
-  const [selectedModel, setSelectedModel] = useState<ModelId>(DEFAULT_MODEL); //choose selected model else default
-  const messagesEndRef = useRef<HTMLDivElement>(null); // to scroll to bottom of chat everytime i refresh
+  const [error, setError] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<ModelId>(DEFAULT_MODEL); 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (chatId) {
@@ -45,18 +45,15 @@ export default function ChatArea({ chatId, onChatCreated, userId, credits, onCre
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || loading) return;
-
-  // No credit
     if (userId && credits <= 0) {
       setError("No credits available. Please purchase more credits to continue chatting.");
       return;
     }
-
     setError(null);
     const userMessage = input.trim();
     setInput("");
     setLoading(true);
-
+    
     const tempUserMsg: ChatMessage = {
       id: `temp-${Date.now()}`,
       role: "user",

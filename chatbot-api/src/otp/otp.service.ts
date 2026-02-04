@@ -28,7 +28,7 @@ export class OtpService {
     }
 
     const otp = this.generateOTP();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); 
 
     await this.userModel.findByIdAndUpdate(user._id, {
       otp,
@@ -47,7 +47,7 @@ export class OtpService {
     return {
       message: 'OTP sent to your email',
       email: normalizedEmail,
-      otp: otp // For development, remove this in production
+      otp: otp 
     };
   }
 
@@ -98,14 +98,13 @@ export class OtpService {
     }
 
     const otp = this.generateOTP();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); 
 
     await this.userModel.findByIdAndUpdate(user._id, {
       otp,
       otpExpiry,
     });
 
-    // Send OTP email
     try {
       await this.emailService.sendOTP(normalizedEmail, otp);
       console.log(`OTP email resent to ${normalizedEmail}`);
@@ -116,7 +115,7 @@ export class OtpService {
 
     return {
       message: 'OTP resent to your email',
-      otp: otp // For development, remove this in production
+      otp: otp 
     };
   }
 
@@ -125,19 +124,19 @@ export class OtpService {
     const user = await this.userModel.findOne({ email: normalizedEmail });
     
     if (!user) {
-      // Don't reveal if email exists or not for security
+    
       throw new BadRequestException('If this email is registered, you will receive password reset instructions');
     }
 
     const otp = this.generateOTP();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); 
 
     await this.userModel.findByIdAndUpdate(user._id, {
       passwordResetOTP: otp,
       passwordResetOTPExpiry: otpExpiry,
     });
 
-    // Send password reset OTP email
+    
     try {
       await this.emailService.sendPasswordResetOTP(normalizedEmail, otp);
     } catch (emailError) {

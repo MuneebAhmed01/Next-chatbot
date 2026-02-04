@@ -16,7 +16,7 @@ export default function NewChatPage() {
     const router = useRouter();
 
     useEffect(() => {
-      
+
         const getUserFromCookie = () => {
             try {
                 const userCookie = document.cookie
@@ -36,7 +36,7 @@ export default function NewChatPage() {
 
         const user = getUserFromCookie();
 
-        
+
         const authCookie = document.cookie
             .split('; ')
             .find(row => row.startsWith('auth='));
@@ -93,18 +93,7 @@ export default function NewChatPage() {
         );
     }
 
-    if (showProfile) {
-        return (
-            <Profile
-                userId={userId || undefined}
-                userEmail={userEmail || undefined}
-                userName={userName || undefined}
-                credits={credits}
-                onBuyCredits={handleBuyCredits}
-                onBack={() => setShowProfile(false)}
-            />
-        );
-    }
+
 
     return (
         <div className="flex h-screen bg-zinc-900">
@@ -123,6 +112,17 @@ export default function NewChatPage() {
                 credits={credits}
                 onCreditsChange={handleCreditsChange}
             />
+
+            {showProfile && (
+                <Profile
+                    userId={userId || undefined}
+                    userEmail={userEmail || undefined}
+                    userName={userName || undefined}
+                    credits={credits}
+                    onBuyCredits={handleBuyCredits}
+                    onBack={() => setShowProfile(false)}
+                />
+            )}
         </div>
     );
 }
