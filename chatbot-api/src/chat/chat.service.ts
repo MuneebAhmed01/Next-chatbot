@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import type { SendMessageDto, SaveChatDto } from '../zod-schemas/chat.schema';
 import { OpenRouterService } from './openrouter.service';
 import { PaymentService } from '../payment/payment.service';
+import { MemoryService } from '../memory/memory.service';
+import { PromptBuilderService } from '../memory/prompt-builder.service';
 
 @Injectable()
 export class ChatService {
@@ -14,7 +16,9 @@ export class ChatService {
     @InjectModel('Message') private messageModel: Model<any>,
     @InjectModel('User') private userModel: Model<any>,
     private openRouterService: OpenRouterService,
-    private paymentService: PaymentService
+    private paymentService: PaymentService,
+    private memoryService: MemoryService,
+    private promptBuilder: PromptBuilderService,
   ) {}
 
   async getSidebarChats(userId?: string) {
@@ -181,18 +185,31 @@ export class ChatService {
         }
       }
       
-      // Build messages array with system prompt, conversation history, and new message
-      const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        {
-          role: 'system' as const,
-          content: 'You are a helpful AI assistant. Please provide thoughtful and accurate responses. Remember the context of our conversation and refer back to previous messages when relevant.'
-        },
-        ...conversationHistory,
-        {
-          role: 'user' as const,
-          content: dto.message || ''
+      // Retrieve relevant memories from Pinecone (if user is authenticated)
+      let memoryContext = '';
+      if (dto.userId && this.memoryService.isReady()) {
+        try {
+          const memories = await this.memoryService.retrieve(dto.message || '', dto.userId, 5);
+          memoryContext = memories.formattedContext;
+          if (memoryContext) {
+            this.logger.log(`Memory context retrieved for user ${dto.userId}: ${memories.relevantMemories.length} memories`);
+          } else {
+            this.logger.log(`No relevant memories found for user ${dto.userId}`);
+          }
+        } catch (error) {
+          this.logger.warn(`Memory retrieval failed (continuing without): ${error.message}`);
         }
-      ];
+      } else {
+        this.logger.log(`Memory skipped: userId=${dto.userId ? 'present' : 'none'}, memoryReady=${this.memoryService.isReady()}`);
+      }
+      
+      // Build messages using prompt builder
+      const messages = this.promptBuilder.build({
+        systemPrompt: 'You are a helpful AI assistant. Please provide thoughtful and accurate responses. Remember the context of our conversation and refer back to previous messages when relevant.',
+        memoryContext,
+        recentHistory: this.promptBuilder.formatHistory(conversationHistory),
+        userMessage: dto.message || '',
+      });
 
       // Call OpenRouter API
       const response = await this.openRouterService.sendMessage({
@@ -226,6 +243,12 @@ export class ChatService {
         } else {
           throw new Error('Failed to deduct credit. Please try again.');
         }
+      }
+
+      // Store important information in long-term memory (async, don't block response)
+      if (dto.userId && this.memoryService.isReady()) {
+        this.storeMemoryIfRelevant(dto.userId, dto.message || '', aiMessage, chatId)
+          .catch(err => this.logger.warn(`Memory storage failed: ${err.message}`));
       }
 
       // Get the updated chat with messages
@@ -374,5 +397,35 @@ export class ChatService {
       this.logger.error(`Error deleting chat: ${error.message}`);
       throw error;
     }
+  }
+
+  /**
+   * Store relevant information from conversation to long-term memory
+   * Always stores for authenticated users; classifies by content type
+   */
+  private async storeMemoryIfRelevant(
+    userId: string,
+    userMessage: string,
+    aiResponse: string,
+    chatId: string,
+  ): Promise<void> {
+    // Skip very short or empty messages
+    if (!userMessage || userMessage.length < 5) return;
+
+    // Detect personal info / preferences (store with higher importance)
+    const isPersonal = /my name|i am |i'm |i like|i love|i prefer|i enjoy|i hate|i dislike|i work|i live|my job|my hobby|my favorite|i study|my age/i.test(userMessage);
+    
+    if (isPersonal) {
+      await this.memoryService.storePreference(
+        `User shared: ${userMessage}`,
+        userId,
+      );
+      this.logger.log(`Stored personal memory for ${userId}`);
+      return;
+    }
+
+    // Store all other exchanges as context memory
+    await this.memoryService.storeExchange(userMessage, aiResponse, userId, chatId);
+    this.logger.log(`Stored conversation memory for ${userId}`);
   }
 }
