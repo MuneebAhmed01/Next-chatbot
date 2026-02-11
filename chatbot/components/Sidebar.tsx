@@ -19,6 +19,7 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
   const [isLoading, setIsLoading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const [isLogoutVisible, setIsLogoutVisible] = useState(false);
   const router = useRouter();
 
   console.log('Sidebar: Received userId:', userId);
@@ -160,9 +161,20 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
 
   function handleLogout() {
     setLogoutConfirm(true);
+    requestAnimationFrame(() => {
+      setIsLogoutVisible(true);
+    });
+  }
+
+  function handleLogoutClose() {
+    setIsLogoutVisible(false);
+    setTimeout(() => {
+      setLogoutConfirm(false);
+    }, 200);
   }
 
   function confirmLogout() {
+    setIsLogoutVisible(false);
     document.cookie = 'auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     document.cookie = 'user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     router.push('/login');
@@ -276,13 +288,19 @@ export default function Sidebar({ onSelectChat, activeChat, onChatsUpdate, userI
 
       {/* Logout Confirmation Modal */}
       {logoutConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-sm mx-4 border border-gray-700">
+        <div
+          className={`fixed inset-0 flex items-center justify-center z-50 transition-all duration-200 ease-out ${isLogoutVisible ? 'bg-black/40 backdrop-blur-sm' : 'bg-transparent'}`}
+          onClick={handleLogoutClose}
+        >
+          <div
+            className={`bg-gray-800 rounded-xl p-6 max-w-sm mx-4 border border-gray-700 transition-all duration-200 ease-out ${isLogoutVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-white text-lg font-semibold mb-3">Confirm Logout</h3>
             <p className="text-gray-300 text-sm mb-6">Are you sure you want to logout?</p>
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => setLogoutConfirm(false)}
+                onClick={handleLogoutClose}
                 className="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
               >
                 Cancel
